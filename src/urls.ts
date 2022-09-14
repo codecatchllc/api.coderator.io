@@ -1,0 +1,22 @@
+export default {
+  apiPrefix: '/api/v1',
+  swagger: {
+    path: '/api/docs',
+    spec: 'openapi.json',
+  },
+  auth: {
+    path: '/auth',
+    login: '/login',
+    logout: '/logout',
+    forgotPassword: '/forgot-password',
+    changePassword: '/change-password',
+    register: '/register',
+    edit: '/edit',
+    verify: '/verify',
+    token: '/token',
+    me: '/me',
+  },
+  post: {
+    path: '/post',
+  },
+};

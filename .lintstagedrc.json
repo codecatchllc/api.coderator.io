@@ -1,0 +1,3 @@
+{
+  "src/**/*.ts": ["bash -c 'yarn type-check'", "yarn lint:fix", "yarn prettier"]
+}
