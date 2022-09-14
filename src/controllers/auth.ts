@@ -17,14 +17,14 @@ import {
   LoginSchema,
   RefreshTokenSchema,
   RegisterSchema,
-  UserModel,
+  UserModel
 } from './../@types/custom/index.d';
 import {
   ACCESS_TOKEN_LIFESPAN,
   COLOR_SCHEME_KEY,
   FORGOT_PASSWORD_PREFIX,
   REFRESH_TOKEN_KEY,
-  REFRESH_TOKEN_LIFESPAN,
+  REFRESH_TOKEN_LIFESPAN
 } from './../constants/index';
 
 const redis = new Redis(config.REDIS_PORT, config.REDIS_HOST);
@@ -173,11 +173,11 @@ const register = async (req: Request, res: Response) => {
 
     const html = `
     <h4>Registration Completed!</h4>
-    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://codecatch.net">CodeCatch.net</a>. You can get started on CodeCatch by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a> or <a href="${config.PROTOCOL}://${config.CLIENT_URL}/search">searching all posts</a>.</p>
+    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on CodeCatch by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a>.</p>
     <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
     `;
 
-    await sendEmail(user.email, 'CodeCatch: Registration Completed!', html);
+    await sendEmail(user.email, 'Coderator: Registration Completed!', html);
 
     res.status(201).json({ user });
   } catch (error) {
@@ -211,13 +211,13 @@ const forgotPassword = async (req: Request, res: Response) => {
 
     const html = `
     <h4>Reset Password</h4>
-    <p>There as been a request to reset your codecatch.net password. Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you did not initiate this request.</p>
+    <p>There as been a request to reset your coderator.io password. Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you did not initiate this request.</p>
     <p>You will have to submit a new request if you do not reset your password within the next two hours.</p>
     <p>Click the following link to reset your password:</p>
-    <a href="http:/localhost:3000/change-password/${token}">http:/localhost:3000/change-password/${token}</a>
+    <a href=""${config.PROTOCOL}://${config.CLIENT_URL}/change-password/${token}">"${config.PROTOCOL}://${config.CLIENT_URL}/change-password/${token}</a>
     `;
 
-    await sendEmail(email, 'CodeCatch: Reset Password', html);
+    await sendEmail(email, 'Coderator: Reset Password', html);
 
     res.status(204).send();
   } catch (error) {
