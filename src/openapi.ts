@@ -8,21 +8,21 @@ import {
   refreshTokenResponseSchema,
   refreshTokenSchema,
   registerSchema,
-  userResponseSchema,
+  userResponseSchema
 } from './schemas/auth';
 import {
   getSimilarPostsSchema,
   postResponseSchema,
-  postSchema,
+  postSchema
 } from './schemas/post';
 
 const options: swaggerJSDoc.OAS3Options = {
   definition: {
     openapi: '3.0.0.',
     info: {
-      title: 'CodeCatch React API',
+      title: 'Coderator API',
       version: '1.1.1',
-      description: 'A REST+JSON API service for CodeCatch projects',
+      description: 'A REST+JSON API service for Coderator',
     },
     servers: [
       {
