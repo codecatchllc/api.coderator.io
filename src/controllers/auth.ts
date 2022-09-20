@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import Redis from 'ioredis';
 import jwt, { Secret } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '../models/init';
+import { Post, User } from '../models/init';
 import config from '../utils/config';
 import { genAccessToken } from '../utils/genAccessToken';
 import { genRefreshToken } from '../utils/genRefreshToken';
@@ -17,14 +17,14 @@ import {
   LoginSchema,
   RefreshTokenSchema,
   RegisterSchema,
-  UserModel
+  UserModel,
 } from './../@types/custom/index.d';
 import {
   ACCESS_TOKEN_LIFESPAN,
   COLOR_SCHEME_KEY,
   FORGOT_PASSWORD_PREFIX,
   REFRESH_TOKEN_KEY,
-  REFRESH_TOKEN_LIFESPAN
+  REFRESH_TOKEN_LIFESPAN,
 } from './../constants/index';
 
 const redis = new Redis(config.REDIS_PORT, config.REDIS_HOST);
@@ -370,6 +370,42 @@ const editUser = async (req: Request, res: Response) => {
   }
 };
 
+const deleteaccount = async (req: Request, res: Response) => {
+  try {
+    await Post.deleteMany({
+      where: {
+        userId: req.user.id,
+      },
+    });
+
+    const userexists = await User.findUnique({
+      where: {
+        id: req.user.id,
+      },
+    });
+
+    if (!userexists) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    await User.delete({
+      where: {
+        id: req.user.id,
+      },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: 'There was an error deleting your account, please try again later',
+    });
+  }
+};
+
 export default {
   login,
   register,
@@ -379,4 +415,5 @@ export default {
   refreshToken,
   me,
   editUser,
+  deleteaccount,
 };
