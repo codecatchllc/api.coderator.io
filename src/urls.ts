@@ -15,6 +15,7 @@ export default {
     verify: '/verify',
     token: '/token',
     me: '/me',
+    deleteaccount: '/deleteaccount',
   },
   post: {
     path: '/post',
