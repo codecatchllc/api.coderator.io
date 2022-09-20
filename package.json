@@ -1,9 +1,9 @@
 {
   "name": "codecatch-react-api",
   "version": "0.0.0-semantic-release",
-  "description": "API for CodeCatch React",
+  "description": "API for Coderator",
   "main": "./src/server.ts",
-  "author": "CodeCatch LLC <codecatchservice@gmail.com",
+  "author": "CodeCatch LLC <codecatchservice@gmail.com>",
   "license": "MIT",
   "private": true,
   "homepage": "https://github.com/codecatchllc/codecatch-react-api/blob/main/README.md",

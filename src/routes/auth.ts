@@ -220,6 +220,36 @@ router.get(urls.auth.me, controller.me);
 
 /** @swagger
  *
+ * /auth/deleteaccount:
+ *   delete:
+ *     tags: [Authentication]
+ *     summary: Delete Account and All Associated Data
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       204:
+ *         description: Successfully deleted account and all associated data
+ *       404:
+ *         description: User could not be found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.delete(urls.auth.deleteaccount, controller.deleteaccount);
+
+/** @swagger
+ *
  * /auth/edit:
  *   patch:
  *     tags: [Authentication]
