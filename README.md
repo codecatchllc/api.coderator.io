@@ -34,7 +34,7 @@ To run the server in development mode, with log pretty-printing
 and hot-reload:
 
 ```
-yarn devstart
+yarn dev
 ```
 
 To run the tests, run the `test` script (`yarn test`). There are
