@@ -31,7 +31,7 @@ const redis = new Redis(config.REDIS_PORT, config.REDIS_HOST);
 
 const EMAIL_REGEX =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-/*register oauth function*/
+/*register oauth function controller*/
 const registerOAuth = async (req: Request, res: Response) => {
   try {
     const { email, username, password, confirmPassword } =
