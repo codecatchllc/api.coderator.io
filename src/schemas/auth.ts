@@ -12,6 +12,18 @@ export const loginSchema: Schema = {
   additionalProperties: false,
 };
 
+export const registerOAuthSchema: Schema = {
+  type: 'object',
+  properties: {
+    email: { type: 'string', format: 'email', minLength: 3 },
+    username: { type: 'string', minLength: 3 },
+    password: { type: 'string', minLength: 7 },
+    confirmPassword: { type: 'string', minLength: 7 },
+  },
+  required: ['email', 'username', 'password', 'confirmPassword'],
+  additionalProperties: false,
+};
+
 export const registerSchema: Schema = {
   type: 'object',
   properties: {

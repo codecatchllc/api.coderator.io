@@ -4,6 +4,7 @@ export type UserModel = {
   username: string;
   password?: string;
   accessToken?: string;
+  isOAuthAccount?: boolean;
   accessTokenExpires?: number;
   refreshToken?: string;
   createdAt: Date;

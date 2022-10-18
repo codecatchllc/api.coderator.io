@@ -7,6 +7,7 @@ import {
   editUserSchema,
   forgotPasswordSchema,
   loginSchema,
+  registerOAuthSchema,
   registerSchema,
 } from '../schemas/auth';
 import urls from '../urls';
@@ -216,6 +217,37 @@ router.use(authenticateWithToken);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
+
+router.post(
+  urls.auth.registerOAuth,
+  requireSchema(registerOAuthSchema),
+  controller.registerOAuth
+);
+/** @swagger
+ *
+ * /auth/register/oauth:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Register a new user account
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/registerOAuthSchema'
+ *     responses:
+ *       204:
+ *         description: Successful reset password link sent
+ *       400:
+ *         description: Bad request, registration failed
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
 router.get(urls.auth.me, controller.me);
 
 /** @swagger

@@ -19,6 +19,7 @@ model User {
   lastLoginAt DateTime @default(now())
   isActive Boolean @default(true)
   posts Post[]
+  isOAuthAccount Boolean @default(false)
 
   @@index([email])
 }

@@ -7,13 +7,14 @@ import {
   loginSchema,
   refreshTokenResponseSchema,
   refreshTokenSchema,
+  registerOAuthSchema,
   registerSchema,
-  userResponseSchema
+  userResponseSchema,
 } from './schemas/auth';
 import {
   getSimilarPostsSchema,
   postResponseSchema,
-  postSchema
+  postSchema,
 } from './schemas/post';
 
 const options: swaggerJSDoc.OAS3Options = {
@@ -37,6 +38,7 @@ const options: swaggerJSDoc.OAS3Options = {
         forgotPasswordSchema: forgotPasswordSchema as Reference,
         changePasswordSchema: changePasswordSchema as Reference,
         refreshTokenSchema: refreshTokenSchema as Reference,
+        registerOAuthSchema: registerOAuthSchema as Reference,
         editUserSchema: editUserSchema as Reference,
         postSchema: postSchema as Reference,
         getSimilarPostsSchema: getSimilarPostsSchema as Reference,
