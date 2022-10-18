@@ -9,7 +9,7 @@ export const authenticateWithToken = (
   next: NextFunction
 ) => {
   const authorizationHeader = req.headers.authorization;
-
+  /*Token error response is triggered here*/
   if (!authorizationHeader) {
     res.status(403).json({ error: 'A token is required for authentication' });
     return;
