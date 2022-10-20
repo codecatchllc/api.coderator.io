@@ -15,6 +15,7 @@ export default {
     verify: '/verify',
     token: '/token',
     me: '/me',
+    username: '/user/:username',
     deleteaccount: '/deleteaccount',
   },
   post: {

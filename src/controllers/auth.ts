@@ -338,6 +338,48 @@ const me = async (req: Request, res: Response) => {
   }
 };
 
+const getUserByUsername = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = (await User.findUnique({
+      where: { username },
+      include: { posts: true },
+    })) as UserModel;
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    delete user.password;
+
+    //const postStatistics = genPostStatistics(user.posts);
+
+    // const posts = user.posts
+    //   ?.filter(post =>
+    //     req.user.id !== user.id ? post.privacy !== PRIVATE : post.privacy
+    //   )
+    //   .map(post => {
+    //     return {
+    //       user: {
+    //         username: user.username,
+    //       },
+    //       ...post,
+    //     };
+    //   });
+
+    res.json({ user: { ...user } });
+  } catch (error) {
+    console.error('getUserByUsername() error: ', error);
+    res.status(500).json({
+      error: `There was an error fetching user with username "${req.params.username}", please try again later`,
+    });
+  }
+};
+
 const editUser = async (req: Request, res: Response) => {
   try {
     const user: UserModel = await User.update({
@@ -414,6 +456,7 @@ export default {
   logout,
   refreshToken,
   me,
+  getUserByUsername,
   editUser,
   deleteaccount,
 };

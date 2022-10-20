@@ -187,6 +187,41 @@ router.post(urls.auth.logout, controller.logout);
  */
 router.post(urls.auth.token, controller.refreshToken);
 
+/** @swagger
+ *
+ * /auth/me:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Retrieve the currently authenticated user
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The username of the user to be queried
+ *     responses:
+ *       200:
+ *         description: The user associated with parameter :username
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Bad request, user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(urls.auth.username, controller.getUserByUsername);
+
 // Authentication
 router.use(authenticateWithToken);
 
