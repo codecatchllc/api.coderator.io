@@ -222,8 +222,16 @@ router.post(urls.auth.token, controller.refreshToken);
  */
 router.get(urls.auth.username, controller.getUserByUsername);
 
+router.get(urls.auth.followers, controller.getFollowers);
+
+router.get(urls.auth.following, controller.getFollowing);
+
 // Authentication
 router.use(authenticateWithToken);
+
+router.get(urls.auth.follow, controller.followUser);
+
+router.get(urls.auth.unfollow, controller.unfollowUser);
 
 /** @swagger
  *

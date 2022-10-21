@@ -17,6 +17,10 @@ export default {
     me: '/me',
     username: '/user/:username',
     deleteaccount: '/deleteaccount',
+    followers: '/followers/:username',
+    following: '/following/:username',
+    follow: '/follow/:username',
+    unfollow: '/unfollow/:username',
   },
   post: {
     path: '/post',

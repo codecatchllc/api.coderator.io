@@ -3,12 +3,14 @@ import { Request, Response } from 'express';
 import Redis from 'ioredis';
 import jwt, { Secret } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import prisma from '../../src/models/init';
 import { Post, User } from '../models/init';
 import config from '../utils/config';
 import { genAccessToken } from '../utils/genAccessToken';
 import { genRefreshToken } from '../utils/genRefreshToken';
 import { generatePasswordHash, validatePassword } from '../utils/password';
 import { sendEmail } from '../utils/sendEmail';
+
 import {
   AuthPayload,
   ChangePasswordSchema,
@@ -448,6 +450,182 @@ const deleteaccount = async (req: Request, res: Response) => {
   }
 };
 
+const getFollowers = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = await User.findUnique({
+      where: { username },
+      include: { followedBy: true },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    const followers = user.followedBy.map(followedBy => {
+      return {
+        followerId: followedBy.followerId,
+      };
+    });
+
+    const followersCount = followers.length;
+
+    res.json({ followersCount: followersCount, followers });
+  } catch (error) {
+    console.error('getFollowers() error: ', error);
+    res.status(500).json({
+      error: `There was an error fetching followers for user with username "${req.params.username}", please try again later`,
+    });
+  }
+};
+
+const getFollowing = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = await User.findUnique({
+      where: { username },
+      include: { following: true },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    const following = user.following.map(following => {
+      return {
+        followingId: following.followingId,
+      };
+    });
+
+    const followingCount = following.length;
+
+    res.json({ followingCount: followingCount, following });
+  } catch (error) {
+    console.error('getFollowing() error: ', error);
+    res.status(500).json({
+      error: `There was an error fetching who is following "${req.params.username}", please try again later`,
+    });
+  }
+};
+
+const followUser = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = await User.findUnique({
+      where: { username },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    // dont allow a user to follow themselves
+    if (req.user.id === user.id) {
+      res.status(400).json({ error: 'You cannot follow yourself' });
+      return;
+    }
+
+    //check if a follow relationship already exists
+    const followrelationship = await prisma.follows.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: req.user.id,
+          followingId: user.id,
+        },
+      },
+    });
+
+    // check if the follow relationship already exists
+    if (followrelationship) {
+      res.status(400).json({ error: 'You are already following this user' });
+      return;
+    }
+
+    // create the follow relationship
+    const follow = await prisma.follows.create({
+      data: {
+        followerId: req.user.id,
+        followingId: user.id,
+      },
+    });
+
+    res.json({ follow });
+  } catch (error) {
+    console.error('followUser() error: ', error);
+    res.status(500).json({
+      error: `There was an error following "${req.params.username}", please try again later`,
+    });
+  }
+};
+
+const unfollowUser = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = await User.findUnique({
+      where: { username },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    // dont allow a user to unfollow themselves
+    if (req.user.id === user.id) {
+      res.status(400).json({ error: 'You cannot unfollow yourself' });
+      return;
+    }
+
+    //check if a follow relationship already exists
+    const followrelationship = await prisma.follows.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: req.user.id,
+          followingId: user.id,
+        },
+      },
+    });
+
+    // check if the follow relationship already exists
+    if (!followrelationship) {
+      res.status(400).json({ error: 'You are not following this user' });
+      return;
+    }
+
+    // delete the follow relationship
+    const follow = await prisma.follows.delete({
+      where: {
+        followerId_followingId: {
+          followerId: req.user.id,
+          followingId: user.id,
+        },
+      },
+    });
+
+    res.json({ follow });
+  } catch (error) {
+    console.error('unfollowUser() error: ', error);
+    res.status(500).json({
+      error: `There was an error unfollowing "${req.params.username}", please try again later`,
+    });
+  }
+};
+
 export default {
   login,
   register,
@@ -459,4 +637,8 @@ export default {
   getUserByUsername,
   editUser,
   deleteaccount,
+  getFollowers,
+  getFollowing,
+  followUser,
+  unfollowUser,
 };
