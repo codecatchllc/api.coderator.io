@@ -10,6 +10,8 @@ export type UserModel = {
   lastLoginAt: Date;
   isActive: boolean;
   posts?: PostModel[];
+  followedBy?: FollowModel[];
+  following?: FollowModel[];
   numPosts?: number;
 };
 
@@ -22,6 +24,12 @@ export type PostModel = {
   privacy: string;
   createdAt: Date;
   expirationDate: Date | null;
+};
+
+export type FollowModel = {
+  followerId: number;
+  followingId: number;
+  id: string;
 };
 
 export type PostInnerJoinUser = {

@@ -3,8 +3,7 @@ import { Request, Response } from 'express';
 import Redis from 'ioredis';
 import jwt, { Secret } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import prisma from '../../src/models/init';
-import { Post, User } from '../models/init';
+import { Follow, Post, User } from '../models/init';
 import config from '../utils/config';
 import { genAccessToken } from '../utils/genAccessToken';
 import { genRefreshToken } from '../utils/genRefreshToken';
@@ -538,7 +537,7 @@ const followUser = async (req: Request, res: Response) => {
     }
 
     //check if a follow relationship already exists
-    const followrelationship = await prisma.follows.findUnique({
+    const followrelationship = await Follow.findUnique({
       where: {
         followerId_followingId: {
           followerId: req.user.id,
@@ -554,7 +553,7 @@ const followUser = async (req: Request, res: Response) => {
     }
 
     // create the follow relationship
-    const follow = await prisma.follows.create({
+    const follow = await Follow.create({
       data: {
         followerId: req.user.id,
         followingId: user.id,
@@ -592,7 +591,7 @@ const unfollowUser = async (req: Request, res: Response) => {
     }
 
     //check if a follow relationship already exists
-    const followrelationship = await prisma.follows.findUnique({
+    const followrelationship = await Follow.findUnique({
       where: {
         followerId_followingId: {
           followerId: req.user.id,
@@ -608,7 +607,7 @@ const unfollowUser = async (req: Request, res: Response) => {
     }
 
     // delete the follow relationship
-    const follow = await prisma.follows.delete({
+    const unfollow = await Follow.delete({
       where: {
         followerId_followingId: {
           followerId: req.user.id,
@@ -617,7 +616,7 @@ const unfollowUser = async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ follow });
+    res.json({ unfollow });
   } catch (error) {
     console.error('unfollowUser() error: ', error);
     res.status(500).json({

@@ -229,8 +229,86 @@ router.get(urls.auth.following, controller.getFollowing);
 // Authentication
 router.use(authenticateWithToken);
 
+/** @swagger
+ *
+ * /auth/follow:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Follow a user
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The username of the user to be followed
+ *     responses:
+ *       200:
+ *         description: Success, user followed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/followUserResponseSchema'
+ *       404:
+ *         description: Bad request, user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       400:
+ *         description: Bad request, you cannot follow yourself or you are already following this user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get(urls.auth.follow, controller.followUser);
 
+/** @swagger
+ *
+ * /auth/unfollow:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Unfollow a user
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The username of the user to be unfollowed
+ *     responses:
+ *       200:
+ *         description: Success, user unfollowed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Bad request, user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       400:
+ *         description: Bad request, you cannot unfollow yourself or you are already not following this user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get(urls.auth.unfollow, controller.unfollowUser);
 
 /** @swagger
