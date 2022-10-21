@@ -188,9 +188,6 @@ router.post(urls.auth.logout, controller.logout);
  */
 router.post(urls.auth.token, controller.refreshToken);
 
-// Authentication
-router.use(authenticateWithToken);
-
 /** @swagger
  *
  * /auth/me:
@@ -223,6 +220,10 @@ router.post(
   requireSchema(registerOAuthSchema),
   controller.registerOAuth
 );
+
+// Authentication
+router.use(authenticateWithToken);
+
 /** @swagger
  *
  * /auth/register/oauth:
