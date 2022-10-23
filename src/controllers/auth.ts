@@ -471,9 +471,7 @@ const getFollowers = async (req: Request, res: Response) => {
       };
     });
 
-    const followersCount = followers.length;
-
-    res.json({ followersCount: followersCount, followers });
+    res.json({ followers });
   } catch (error) {
     console.error('getFollowers() error: ', error);
     res.status(500).json({
@@ -504,9 +502,7 @@ const getFollowing = async (req: Request, res: Response) => {
       };
     });
 
-    const followingCount = following.length;
-
-    res.json({ followingCount: followingCount, following });
+    res.json({ following });
   } catch (error) {
     console.error('getFollowing() error: ', error);
     res.status(500).json({

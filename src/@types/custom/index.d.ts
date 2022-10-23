@@ -8,6 +8,7 @@ export type UserModel = {
   refreshToken?: string;
   createdAt: Date;
   lastLoginAt: Date;
+  biography: string;
   isActive: boolean;
   posts?: PostModel[];
   followedBy?: FollowModel[];
