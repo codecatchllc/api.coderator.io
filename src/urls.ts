@@ -16,6 +16,7 @@ export default {
     token: '/token',
     me: '/me',
     username: '/user/:username',
+    id: '/lookup/:id',
     deleteaccount: '/deleteaccount',
     followers: '/followers/:username',
     following: '/following/:username',

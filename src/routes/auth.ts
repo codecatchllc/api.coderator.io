@@ -226,6 +226,8 @@ router.get(urls.auth.followers, controller.getFollowers);
 
 router.get(urls.auth.following, controller.getFollowing);
 
+router.get(urls.auth.id, controller.getUserById);
+
 // Authentication
 router.use(authenticateWithToken);
 

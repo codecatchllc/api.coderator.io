@@ -357,21 +357,6 @@ const getUserByUsername = async (req: Request, res: Response) => {
 
     delete user.password;
 
-    //const postStatistics = genPostStatistics(user.posts);
-
-    // const posts = user.posts
-    //   ?.filter(post =>
-    //     req.user.id !== user.id ? post.privacy !== PRIVATE : post.privacy
-    //   )
-    //   .map(post => {
-    //     return {
-    //       user: {
-    //         username: user.username,
-    //       },
-    //       ...post,
-    //     };
-    //   });
-
     res.json({ user: { ...user } });
   } catch (error) {
     console.error('getUserByUsername() error: ', error);
@@ -621,6 +606,32 @@ const unfollowUser = async (req: Request, res: Response) => {
   }
 };
 
+const getUserById = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    const user = (await User.findUnique({
+      where: { id },
+    })) as UserModel;
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    delete user.password;
+
+    res.json({ user: { username: user.username, createdAt: user.createdAt } });
+  } catch (error) {
+    console.error('getUserById() error: ', error);
+    res.status(500).json({
+      error: `There was an error getting user with id "${req.params.id}", please try again later`,
+    });
+  }
+};
+
 export default {
   login,
   register,
@@ -630,6 +641,7 @@ export default {
   refreshToken,
   me,
   getUserByUsername,
+  getUserById,
   editUser,
   deleteaccount,
   getFollowers,
