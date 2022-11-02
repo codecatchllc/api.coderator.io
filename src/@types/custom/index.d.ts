@@ -89,6 +89,7 @@ export type GetSimilarPostsSchema = {
 export type EditUserSchema = {
   email?: string;
   username?: string;
+  biography: string;
 };
 
 export type CaptchaValidation = {

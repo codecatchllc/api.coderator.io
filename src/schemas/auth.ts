@@ -59,6 +59,7 @@ export const editUserSchema: Schema = {
   properties: {
     email: { type: 'string', format: 'email' },
     username: { type: 'string' },
+    biography: { type: 'string' },
   },
   additionalProperties: false,
 };
