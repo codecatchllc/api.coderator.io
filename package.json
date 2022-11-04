@@ -85,10 +85,6 @@
     "prisma": "^3.13.0",
     "supertest": "^6.2.3",
     "ts-node": "^10.7.0",
-<<<<<<< Updated upstream
-=======
-    "tsc": "^2.0.4",
->>>>>>> Stashed changes
     "typescript": "^4.8.4"
   }
 }

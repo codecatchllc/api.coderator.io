@@ -7,7 +7,6 @@ export type UserModel = {
   isOAuthAccount?: boolean;
   accessTokenExpires?: number;
   refreshToken?: string;
-  isOAuthAccount?: boolean;
   verified: boolean;
   createdAt: Date;
   lastLoginAt: Date;

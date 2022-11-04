@@ -37,125 +37,6 @@ import {
 
 const redis = new Redis(config.REDIS_PORT, config.REDIS_HOST);
 
-<<<<<<< Updated upstream
-const EMAIL_REGEX =
-  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-/*register oauth function controller*/
-const registerOAuth = async (req: Request, res: Response) => {
-  try {
-    const { email, username, password, confirmPassword } =
-      req.validatedBody as RegisterSchema;
-
-    // Find user based on email OR username from request body
-    const userFound = await User.findFirst({
-      where: {
-        OR: [{ email }, { username }],
-      },
-    });
-
-    // If the OAuth user is trying to log in instead of signing up
-
-    if (userFound && (await validatePassword(password, userFound.password))) {
-      try {
-        userFound.lastLoginAt = new Date(Date.now());
-
-        const updatedUser: UserModel = await User.update({
-          where: { id: userFound.id },
-          data: { lastLoginAt: userFound.lastLoginAt },
-          include: { posts: true },
-        });
-
-        const accessToken = genAccessToken(userFound.id);
-        const refreshToken = genRefreshToken(userFound.id);
-
-        updatedUser.accessToken = accessToken;
-        updatedUser.accessTokenExpires = Date.now() + ACCESS_TOKEN_LIFESPAN;
-        updatedUser.refreshToken = refreshToken;
-        updatedUser.numPosts = updatedUser?.posts?.length;
-
-        delete updatedUser.password;
-
-        res.cookie(REFRESH_TOKEN_KEY, refreshToken, {
-          httpOnly: true,
-          secure: config.NODE_ENV === 'production',
-          maxAge: REFRESH_TOKEN_LIFESPAN, // 90 days
-        });
-
-        res.json({ user: updatedUser });
-        return;
-      } catch (error) {
-        console.error('login() error: ', error);
-        res.status(500).json({
-          error: 'There was an error logging you in, please try again later',
-        });
-        return;
-      }
-    } else {
-      if (userFound?.email === email) {
-        res.status(400).json({ email: 'That email is taken' });
-        return;
-      }
-
-      if (userFound?.username === username) {
-        res.status(400).json({ username: 'That username is taken' });
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        res.status(400).json({ confirmPassword: 'Passwords do not match' });
-        return;
-      }
-
-      const hash = await generatePasswordHash(password);
-
-      const user: UserModel = await User.create({
-        data: {
-          email,
-          username,
-          password: hash,
-          isOAuthAccount: true,
-        },
-        include: {
-          posts: true,
-        },
-      });
-
-      const accessToken = genAccessToken(user.id);
-      const refreshToken = genRefreshToken(user.id);
-
-      user.accessToken = accessToken;
-      user.accessTokenExpires = Date.now() + ACCESS_TOKEN_LIFESPAN;
-      user.refreshToken = refreshToken;
-      user.numPosts = user?.posts?.length;
-
-      delete user.password;
-
-      res.cookie(REFRESH_TOKEN_KEY, refreshToken, {
-        httpOnly: true,
-        secure: config.NODE_ENV === 'production',
-        maxAge: REFRESH_TOKEN_LIFESPAN, // 90 days
-      });
-
-      const html = `
-        <h4>Registration Completed!</h4>
-        <p>Hello ${user.username}, thank you for becoming a member of <a href="https://codecatch.net">CodeCatch.net</a>. You can get started on CodeCatch by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a> or <a href="${config.PROTOCOL}://${config.CLIENT_URL}/search">searching all posts</a>.</p>
-        <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
-        `;
-
-      await sendEmail(user.email, 'CodeCatch: Registration Completed!', html);
-
-      res.status(201).json({ user });
-    }
-  } catch (error) {
-    console.error('registerOAuth() error: ', error);
-    res.status(500).json({
-      error:
-        'There was an error registering your account, please try again later',
-    });
-  }
-};
-=======
->>>>>>> Stashed changes
 const login = async (req: Request, res: Response) => {
   try {
     const { usernameOrEmail, password } = req.validatedBody as LoginSchema;
@@ -226,6 +107,8 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
     ) as { email: string; username: string };
 
     const { email: unsanitizedEmail, username } = decodedUser;
+
+    console.log(decodedUser);
 
     const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
 
@@ -756,11 +639,7 @@ export default {
   login,
   authenticateWithOAuth,
   register,
-<<<<<<< Updated upstream
-  registerOAuth,
-=======
   verifyEmail,
->>>>>>> Stashed changes
   forgotPassword,
   changePassword,
   logout,

@@ -8,7 +8,6 @@ import {
   loginSchema,
   refreshTokenResponseSchema,
   refreshTokenSchema,
-  registerOAuthSchema,
   registerSchema,
   userResponseSchema,
 } from './schemas/auth';
@@ -40,7 +39,6 @@ const options: swaggerJSDoc.OAS3Options = {
         forgotPasswordSchema: forgotPasswordSchema as Reference,
         changePasswordSchema: changePasswordSchema as Reference,
         refreshTokenSchema: refreshTokenSchema as Reference,
-        registerOAuthSchema: registerOAuthSchema as Reference,
         editUserSchema: editUserSchema as Reference,
         postSchema: postSchema as Reference,
         getSimilarPostsSchema: getSimilarPostsSchema as Reference,

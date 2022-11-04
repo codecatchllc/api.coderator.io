@@ -8,7 +8,6 @@ import {
   editUserSchema,
   forgotPasswordSchema,
   loginSchema,
-  registerOAuthSchema,
   registerSchema,
 } from '../schemas/auth';
 import urls from '../urls';
@@ -262,76 +261,14 @@ router.post(urls.auth.logout, authenticateWithToken, controller.logout);
  */
 router.post(urls.auth.token, controller.refreshToken);
 
-/** @swagger
- *
- * /auth/me:
- *   get:
- *     tags: [Authentication]
- *     summary: Retrieve the currently authenticated user
- *     responses:
- *       200:
- *         description: The authenticated user
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       404:
- *         description: Bad request, user not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Bad request, server-side error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-<<<<<<< Updated upstream
+router.get(urls.auth.me, authenticateWithToken, controller.me);
 
-router.post(
-  urls.auth.registerOAuth,
-  requireSchema(registerOAuthSchema),
-  controller.registerOAuth
-);
 
-// Authentication
-router.use(authenticateWithToken);
-
-/** @swagger
- *
- * /auth/register/oauth:
- *   post:
- *     tags: [Authentication]
- *     summary: Register a new user account
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/registerOAuthSchema'
- *     responses:
- *       204:
- *         description: Successful reset password link sent
- *       400:
- *         description: Bad request, registration failed
- *       500:
- *         description: Bad request, server-side error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-
-router.get(urls.auth.me, controller.me);
-=======
 router.get(
     urls.auth.username,
     authenticateWithToken,
     controller.getUserByUsername
 );
->>>>>>> Stashed changes
 
 /** @swagger
  *

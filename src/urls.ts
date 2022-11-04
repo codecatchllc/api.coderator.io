@@ -11,11 +11,8 @@ export default {
     forgotPassword: '/forgot-password',
     changePassword: '/change-password',
     register: '/register',
-<<<<<<< Updated upstream
     registerOAuth: '/register/oauth',
-=======
     authenticateWithOAuth: '/oauth',
->>>>>>> Stashed changes
     edit: '/edit',
     verify: '/verify',
     token: '/token',
