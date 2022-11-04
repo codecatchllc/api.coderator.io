@@ -30,6 +30,33 @@ export const authenticateWithToken = (
   next();
 };
 
+export const getRequestUser = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+  try {
+    const authorizationHeader = req.headers.authorization;
+    if (authorizationHeader) {
+      const token = authorizationHeader.split(' ')[1];
+      if (token) {
+        const decoded = jwt.verify(
+            token,
+            config.ACCESS_TOKEN_SECRET as Secret
+        ) as AuthPayload;
+        req.user = decoded;
+      }
+    }
+  } catch (error) {
+    console.error('getRequestUser() error: ', error);
+    res.status(500).json({
+      error: 'There was a server-side issue while fetching the request user',
+    });
+    return;
+  }
+  next();
+};
+
 export const requireUser = (
   req: Request,
   res: Response,

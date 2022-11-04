@@ -3,12 +3,17 @@ CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "password" VARCHAR(255) NOT NULL,
+<<<<<<< Updated upstream:prisma/migrations/20220524023204_init/migration.sql
     "token" VARCHAR(255) NOT NULL,
     "isOAuthAccount" BOOLEAN NOT NULL DEFAULT false,
+=======
+>>>>>>> Stashed changes:prisma/migrations/20221104000650_initial/migration.sql
     "username" VARCHAR(255) NOT NULL,
+    "verified" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastLoginAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "isOAuthAccount" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -16,11 +21,11 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Post" (
     "id" SERIAL NOT NULL,
-    "userId" TEXT NOT NULL,
-    "title" VARCHAR(100) NOT NULL,
-    "content" VARCHAR(8000) NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "title" VARCHAR(100) NOT NULL DEFAULT E'Untitled',
+    "content" VARCHAR(40000) NOT NULL,
     "language" VARCHAR(50) NOT NULL DEFAULT E'plaintext',
-    "privacy" INTEGER NOT NULL,
+    "privacy" VARCHAR(7) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expirationDate" TIMESTAMP(3),
 
@@ -31,16 +36,18 @@ CREATE TABLE "Post" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_token_key" ON "User"("token");
-
--- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
 CREATE INDEX "User_email_idx" ON "User"("email");
 
 -- CreateIndex
-CREATE INDEX "User_token_idx" ON "User"("token");
+CREATE INDEX "Post_title_idx" ON "Post"("title");
 
+<<<<<<< Updated upstream:prisma/migrations/20220524023204_init/migration.sql
 -- CreateIndex
 CREATE UNIQUE INDEX "Post_userId_key" ON "Post"("userId");
+=======
+-- AddForeignKey
+ALTER TABLE "Post" ADD CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+>>>>>>> Stashed changes:prisma/migrations/20221104000650_initial/migration.sql

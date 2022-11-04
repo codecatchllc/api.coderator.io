@@ -7,6 +7,8 @@ export type UserModel = {
   isOAuthAccount?: boolean;
   accessTokenExpires?: number;
   refreshToken?: string;
+  isOAuthAccount?: boolean;
+  verified: boolean;
   createdAt: Date;
   lastLoginAt: Date;
   isActive: boolean;
@@ -40,6 +42,15 @@ export type PostInnerJoinUser = {
 export type LoginSchema = {
   usernameOrEmail: string;
   password: string;
+};
+
+export type AuthenticateWithOAuthSchema = {
+  encodedUser: string;
+};
+
+export type VerifyEmailSchema = {
+  id: number;
+  token: string;
 };
 
 export type RegisterSchema = {

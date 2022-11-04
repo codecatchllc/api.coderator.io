@@ -1,11 +1,17 @@
 import { Prisma } from '@prisma/client';
+import axios from 'axios';
 import { Request, Response } from 'express';
 import Redis from 'ioredis';
 import jwt, { Secret } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { Post, User } from '../models/init';
+import {
+  EMAIL_VERIFICATION_PREFIX,
+  FORGOT_PASSWORD_PREFIX,
+} from '../constants/redis';
+import { User } from '../models/init';
 import config from '../utils/config';
 import { genAccessToken } from '../utils/genAccessToken';
+import genPostStatistics from '../utils/genPostStatistics';
 import { genRefreshToken } from '../utils/genRefreshToken';
 import { generatePasswordHash, validatePassword } from '../utils/password';
 import { sendEmail } from '../utils/sendEmail';
@@ -15,20 +21,23 @@ import {
   EditUserSchema,
   ForgotPasswordSchema,
   LoginSchema,
+  AuthenticateWithOAuthSchema,
+  VerifyEmailSchema,
   RefreshTokenSchema,
   RegisterSchema,
   UserModel,
 } from './../@types/custom/index.d';
 import {
   ACCESS_TOKEN_LIFESPAN,
-  COLOR_SCHEME_KEY,
-  FORGOT_PASSWORD_PREFIX,
+  EMAIL_REGEX,
+  PRIVATE,
   REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_LIFESPAN,
 } from './../constants/index';
 
 const redis = new Redis(config.REDIS_PORT, config.REDIS_HOST);
 
+<<<<<<< Updated upstream
 const EMAIL_REGEX =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 /*register oauth function controller*/
@@ -145,6 +154,8 @@ const registerOAuth = async (req: Request, res: Response) => {
     });
   }
 };
+=======
+>>>>>>> Stashed changes
 const login = async (req: Request, res: Response) => {
   try {
     const { usernameOrEmail, password } = req.validatedBody as LoginSchema;
@@ -152,9 +163,12 @@ const login = async (req: Request, res: Response) => {
     // Regex to test if "usernameOrEmail" is an email or username
     const isEmail = EMAIL_REGEX.test(usernameOrEmail);
     const key = isEmail ? 'email' : 'username';
+    const whereClause = isEmail
+        ? { email: usernameOrEmail ? usernameOrEmail.toLowerCase() : '' }
+        : { username: usernameOrEmail };
 
     const user = await User.findUnique({
-      where: { [key]: usernameOrEmail },
+      where: whereClause,
     });
     if (!user) {
       res.status(400).json({
@@ -202,35 +216,127 @@ const login = async (req: Request, res: Response) => {
   }
 };
 
+const authenticateWithOAuth = async (req: Request, res: Response) => {
+  try {
+    const { encodedUser } = req.validatedBody as AuthenticateWithOAuthSchema;
+
+    const decodedUser = jwt.verify(
+        encodedUser,
+        config.ACCESS_TOKEN_SECRET as Secret
+    ) as { email: string; username: string };
+
+    const { email: unsanitizedEmail, username } = decodedUser;
+
+    const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
+
+    // Find user based on email OR username from request body
+    const userFound = (await User.findFirst({
+      where: {
+        OR: [{ email }, { username }],
+      },
+    })) as UserModel;
+
+    // If the OAuth user is trying to log in instead of signing up
+    if (userFound) {
+      try {
+        userFound.lastLoginAt = new Date(Date.now());
+
+        const updatedUser: UserModel = await User.update({
+          where: { id: userFound.id },
+          data: { lastLoginAt: userFound.lastLoginAt },
+          include: { posts: true },
+        });
+
+        const accessToken = genAccessToken(userFound.id);
+        const refreshToken = genRefreshToken(userFound.id);
+
+        updatedUser.accessToken = accessToken;
+        updatedUser.accessTokenExpires = Date.now() + ACCESS_TOKEN_LIFESPAN;
+        updatedUser.refreshToken = refreshToken;
+        updatedUser.numPosts = updatedUser?.posts?.length;
+
+        delete updatedUser.posts;
+        delete updatedUser.password;
+
+        res.json({ user: updatedUser });
+        return;
+      } catch (error) {
+        console.error('login() error: ', error);
+        res.status(500).json({
+          error: 'There was a server-side issue while logging you in',
+        });
+        return;
+      }
+    } else {
+      const user: UserModel = await User.create({
+        data: {
+          email,
+          username,
+          password: '',
+          verified: true,
+          isOAuthAccount: true,
+        },
+        include: { posts: true },
+      });
+
+      const accessToken = genAccessToken(user.id);
+      const refreshToken = genRefreshToken(user.id);
+
+      user.accessToken = accessToken;
+      user.accessTokenExpires = Date.now() + ACCESS_TOKEN_LIFESPAN;
+      user.refreshToken = refreshToken;
+      user.numPosts = user?.posts?.length;
+
+      delete user.posts;
+      delete user.password;
+
+      const html = `
+      <h4>Registration Completed!</h4>
+      <p>Hello ${user.username}, thank you for becoming a member of <a href="https://codecatch.net">CodeCatch.net</a>. You can get started on CodeCatch by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a> or <a href="${config.PROTOCOL}://${config.CLIENT_URL}/search">searching all posts</a>.</p>
+      <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
+      `;
+
+      await sendEmail(user.email, 'CodeCatch: Registration Completed!', html);
+
+      res.status(201).json({ user });
+    }
+  } catch (error) {
+    console.error('authenticateWithOAuth() error: ', error);
+    res.status(500).json({
+      error: 'There was a server-side issue while registering your account',
+    });
+  }
+};
+
 const register = async (req: Request, res: Response) => {
   try {
-    const { email, username, password, confirmPassword } =
-      req.validatedBody as RegisterSchema;
+    const {
+      email: unsanitizedEmail,
+      username,
+      password,
+      confirmPassword,
+      captcha,
+    } = req.validatedBody as RegisterSchema;
 
-    /**
-     * The structure of response from the verify API is
-     * {
-     *  "success": true | false,
-     *  "challenge_ts": timestamp,  // timestamp of the challenge load (ISO format yyyy-MM-dd'T'HH:mm:ssZZ)
-     *  "hostname": string,         // the hostname of the site where the reCAPTCHA was solved
-     *  "error-codes": [...]        // optional
-      }
-     */
-    // const { data } = await axios.post(
-    //   `https://www.google.com/recaptcha/api/siteverify?secret=${config.RECAPTCHA_SECRET}&response=${captcha}`,
-    //   null,
-    //   {
-    //     headers: {
-    //       'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-    //     },
-    //   }
-    // );
-    // if (!data.success) {
-    //   res.status(422).json({
-    //     captcha: 'Unproccesable request, Invalid captcha code',
-    //   });
-    //   return;
-    // }
+    const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
+
+    const { data } = await axios.post(
+        `https://www.google.com/recaptcha/api/siteverify?secret=${config.RECAPTCHA_SECRET}&response=${captcha}`,
+        null,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+          },
+        }
+    );
+    if (!data.success) {
+      res.status(400).json({
+        errors: {
+          captcha: 'The provided captcha code is invalid',
+        },
+      });
+      return;
+    }
 
     // Find user based on email OR username from request body
     const userFound = await User.findFirst({
@@ -267,30 +373,23 @@ const register = async (req: Request, res: Response) => {
       },
     });
 
-    const accessToken = genAccessToken(user.id);
-    const refreshToken = genRefreshToken(user.id);
+    const token = uuidv4();
 
-    user.accessToken = accessToken;
-    user.accessTokenExpires = Date.now() + ACCESS_TOKEN_LIFESPAN;
-    user.refreshToken = refreshToken;
-    user.numPosts = user?.posts?.length;
-
-    delete user.password;
-    delete user.posts;
-
-    res.cookie(REFRESH_TOKEN_KEY, refreshToken, {
-      httpOnly: true,
-      secure: config.NODE_ENV === 'production',
-      maxAge: REFRESH_TOKEN_LIFESPAN, // 90 days
-    });
+    // Expire email verification token after 24 hours (60 * 60 * 24)
+    await redis.set(
+        EMAIL_VERIFICATION_PREFIX + user.id,
+        token,
+        'EX',
+        60 * 60 * 24
+    );
 
     const html = `
-    <h4>Registration Completed!</h4>
-    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on CodeCatch by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a>.</p>
-    <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
+    <p>Please click the following link to verify your email:</p>
+    <a href="http://${process.env.CLIENT_URL}/verify/${user.id}/${token}">http://${process.env.CLIENT_URL}/verify/${user.id}/${token}</a>
+    <p>If you do not follow the link within 24 hours of receiving this email, your account will be permanently deleted.</p>
     `;
 
-    await sendEmail(user.email, 'Coderator: Registration Completed!', html);
+    await sendEmail(user.email, 'CodeCatch: Verify Your Email', html);
 
     res.status(201).json({ user });
   } catch (error) {
@@ -305,15 +404,106 @@ const register = async (req: Request, res: Response) => {
   }
 };
 
+const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { id, token } = req.validatedBody as VerifyEmailSchema;
+
+    const user = await User.findUnique({
+      where: { id },
+    });
+    if (!user) {
+      res.status(404).json({ error: 'User could not be found' });
+      return;
+    }
+
+    if (!token) {
+      res
+          .status(400)
+          .json({ error: 'Email verification token does not exist' });
+      return;
+    }
+
+    // Check that the Redis token exists
+    const redisToken = await redis.get(EMAIL_VERIFICATION_PREFIX + user.id);
+    if (!redisToken) {
+      res
+          .status(404)
+          .json({ error: 'Email verification token expired or does not exist' });
+      return;
+    }
+
+    // If the URL token and the Redis token do not match
+    if (redisToken !== token) {
+      res
+          .status(400)
+          .json({ error: 'Invalid email verification token provided' });
+      return;
+    }
+
+    // Update the user's verified status to true
+    const updatedUser: UserModel = await User.update({
+      where: { id: user.id },
+      data: { verified: true },
+      include: { posts: true },
+    });
+
+    // Remove the email verification token from Redis
+    await redis.del(EMAIL_VERIFICATION_PREFIX + token);
+
+    const accessToken = genAccessToken(user.id);
+    const refreshToken = genRefreshToken(user.id);
+
+    updatedUser.accessToken = accessToken;
+    updatedUser.accessTokenExpires = Date.now() + ACCESS_TOKEN_LIFESPAN;
+    updatedUser.refreshToken = refreshToken;
+    updatedUser.numPosts = updatedUser?.posts?.length;
+
+    delete updatedUser.posts;
+    delete updatedUser.password;
+
+    res.cookie(REFRESH_TOKEN_KEY, refreshToken, {
+      httpOnly: true,
+      secure: config.NODE_ENV === 'production',
+      maxAge: REFRESH_TOKEN_LIFESPAN, // 90 days
+    });
+
+    const html = `
+    <h4>Registration Completed!</h4>
+    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on CodeCatch by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a>.</p>
+    <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
+    `;
+
+    await sendEmail(
+        updatedUser.email,
+        'CodeCatch: Registration Completed!',
+        html
+    );
+
+    res.status(201).json({ user: updatedUser });
+  } catch (error) {
+    console.error('verifyEmail() error: ', error);
+    res.status(500).json({
+      error: 'There was a server-side issue while verifying your email',
+    });
+  }
+};
+
 const forgotPassword = async (req: Request, res: Response) => {
   try {
-    const { email } = req.validatedBody as ForgotPasswordSchema;
+    const { email: unsanitizedEmail } =
+        req.validatedBody as ForgotPasswordSchema;
+
+    const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
 
     const user = await User.findUnique({ where: { email } });
-    if (!user) {
+    if (!user || user.isOAuthAccount) {
       res
         .status(400)
-        .json({ email: 'There is no account associated with this email' });
+        .json({
+          errors: {
+            email: 'There is no account associated with this email'
+          }
+        });
       return;
     }
 
@@ -336,7 +526,7 @@ const forgotPassword = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       error:
-        'There was an error resetting your password, please try again later',
+        'There was a server-side issue while resetting your password',
     });
   }
 };
@@ -393,9 +583,9 @@ const changePassword = async (req: Request, res: Response) => {
 const logout = async (_: Request, res: Response) => {
   try {
     res.clearCookie(REFRESH_TOKEN_KEY);
-    res.clearCookie(COLOR_SCHEME_KEY);
     res.status(204).send();
   } catch (error) {
+    console.error('logout() error: ', error);
     res.status(500).json({
       error: 'There was an error logging you out, please try again later',
     });
@@ -405,6 +595,7 @@ const logout = async (_: Request, res: Response) => {
 const refreshToken = (req: Request, res: Response) => {
   try {
     const { refreshToken } = req.body as RefreshTokenSchema;
+
     if (!refreshToken) {
       res.status(401).json({ error: 'Token does not exist' });
       return;
@@ -422,7 +613,8 @@ const refreshToken = (req: Request, res: Response) => {
       accessTokenExpires: Date.now() + ACCESS_TOKEN_LIFESPAN,
       refreshToken,
     });
-  } catch (err) {
+  } catch (error) {
+    console.error('refreshToken() error: ', error);
     res.status(401).json({ error: 'Invalid token provided' });
   }
 };
@@ -433,20 +625,67 @@ const me = async (req: Request, res: Response) => {
       where: { id: req.user.id },
       include: { posts: true },
     })) as UserModel;
+
     if (!user) {
       res.status(404).json({
         error: 'Authenticated user could not be found',
       });
       return;
     }
+
     user.numPosts = user?.posts?.length;
 
     delete user.password;
     delete user.posts;
     res.json({ user });
   } catch (error) {
+    console.error('me() error: ', error);
     res.status(500).json({
       error: 'There was an error loading your account, please try again later',
+    });
+  }
+};
+
+const getUserByUsername = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = (await User.findUnique({
+      where: { username },
+      include: { posts: true },
+    })) as UserModel;
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    user.numPosts = user.posts?.length;
+
+    delete user.password;
+
+    const postStatistics = genPostStatistics(user.posts || []);
+
+    const posts = user.posts
+        ?.filter(post =>
+            req.user.id !== user.id ? post.privacy !== PRIVATE : post.privacy
+        )
+        .map(post => {
+          return {
+            user: {
+              username: user.username,
+            },
+            ...post,
+          };
+        });
+
+    res.json({ user: { ...user, posts }, postStatistics });
+  } catch (error) {
+    console.error('getUserByUsername() error: ', error);
+    res.status(500).json({
+      error: `There was a server-side issue while fetching the user with the username provided`,
     });
   }
 };
@@ -483,21 +722,15 @@ const editUser = async (req: Request, res: Response) => {
   }
 };
 
-const deleteaccount = async (req: Request, res: Response) => {
+const deleteAccount = async (req: Request, res: Response) => {
   try {
-    await Post.deleteMany({
-      where: {
-        userId: req.user.id,
-      },
-    });
-
-    const userexists = await User.findUnique({
+    const user = await User.findUnique({
       where: {
         id: req.user.id,
       },
     });
 
-    if (!userexists) {
+    if (!user) {
       res.status(404).json({
         error: 'User could not be found',
       });
@@ -512,22 +745,28 @@ const deleteaccount = async (req: Request, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    console.log(error);
+    console.error('deleteAccount() error: ', error);
     res.status(500).json({
-      error: 'There was an error deleting your account, please try again later',
+      error: 'There was a server-side issue while deleting your account',
     });
   }
 };
 
 export default {
   login,
+  authenticateWithOAuth,
   register,
+<<<<<<< Updated upstream
   registerOAuth,
+=======
+  verifyEmail,
+>>>>>>> Stashed changes
   forgotPassword,
   changePassword,
   logout,
   refreshToken,
   me,
+  getUserByUsername,
   editUser,
-  deleteaccount,
+  deleteAccount,
 };

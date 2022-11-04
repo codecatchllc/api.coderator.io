@@ -3,6 +3,7 @@ import controller from '../controllers/auth';
 import { authenticateWithToken } from '../middlewares/auth';
 import { requireSchema } from '../middlewares/validate';
 import {
+  authenticateWithOAuthSchema,
   changePasswordSchema,
   editUserSchema,
   forgotPasswordSchema,
@@ -50,6 +51,83 @@ router.post(urls.auth.login, requireSchema(loginSchema), controller.login);
 
 /** @swagger
  *
+ * tags:
+ *   name: Authentication
+ *   description: User authentication API
+ *
+ * /auth/verify/:id/:token:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Authenticate a user account
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The id of the user being verified.
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: A uuid token used in Redis to verify a user's identity.
+ *     responses:
+ *       200:
+ *         description: Successful verification, authenticated user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Bad request, invalid token parameter
+ *       404:
+ *         description: Bad request, user or token parameter not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(`${urls.auth.verify}/:id/:token`, controller.verifyEmail);
+
+/** @swagger
+ *
+ * /auth/oauth:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Register a new user account
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/authenticateWithOAuthSchema'
+ *     responses:
+ *       204:
+ *         description: Successful reset password link sent
+ *       400:
+ *         description: Bad request, registration failed
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post(
+    urls.auth.authenticateWithOAuth,
+    requireSchema(authenticateWithOAuthSchema),
+    controller.authenticateWithOAuth
+);
+
+/** @swagger
+ *
  * /auth/register:
  *   post:
  *     tags: [Authentication]
@@ -61,12 +139,8 @@ router.post(urls.auth.login, requireSchema(loginSchema), controller.login);
  *           schema:
  *             $ref: '#/components/schemas/registerSchema'
  *     responses:
- *       201:
- *         description: Successful registration, with user details
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
+ *       204:
+ *         description: Successful reset password link sent
  *       400:
  *         description: Bad request, registration failed
  *       500:
@@ -77,9 +151,9 @@ router.post(urls.auth.login, requireSchema(loginSchema), controller.login);
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  urls.auth.register,
-  requireSchema(registerSchema),
-  controller.register
+    urls.auth.register,
+    requireSchema(registerSchema),
+    controller.register
 );
 
 /** @swagger
@@ -107,9 +181,9 @@ router.post(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  urls.auth.forgotPassword,
-  requireSchema(forgotPasswordSchema),
-  controller.forgotPassword
+    urls.auth.forgotPassword,
+    requireSchema(forgotPasswordSchema),
+    controller.forgotPassword
 );
 
 /** @swagger
@@ -137,9 +211,9 @@ router.post(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  urls.auth.changePassword,
-  requireSchema(changePasswordSchema),
-  controller.changePassword
+    urls.auth.changePassword,
+    requireSchema(changePasswordSchema),
+    controller.changePassword
 );
 
 /** @swagger
@@ -158,7 +232,7 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post(urls.auth.logout, controller.logout);
+router.post(urls.auth.logout, authenticateWithToken, controller.logout);
 
 /** @swagger
  *
@@ -214,6 +288,7 @@ router.post(urls.auth.token, controller.refreshToken);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
+<<<<<<< Updated upstream
 
 router.post(
   urls.auth.registerOAuth,
@@ -250,6 +325,13 @@ router.use(authenticateWithToken);
  */
 
 router.get(urls.auth.me, controller.me);
+=======
+router.get(
+    urls.auth.username,
+    authenticateWithToken,
+    controller.getUserByUsername
+);
+>>>>>>> Stashed changes
 
 /** @swagger
  *
@@ -279,7 +361,11 @@ router.get(urls.auth.me, controller.me);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete(urls.auth.deleteaccount, controller.deleteaccount);
+router.delete(
+    urls.auth.deleteaccount,
+    authenticateWithToken,
+    controller.deleteAccount
+);
 
 /** @swagger
  *
@@ -310,9 +396,11 @@ router.delete(urls.auth.deleteaccount, controller.deleteaccount);
  *               $ref: '#/components/schemas/Error'
  */
 router.patch(
-  urls.auth.edit,
-  requireSchema(editUserSchema),
-  controller.editUser
+    urls.auth.edit,
+    authenticateWithToken,
+    requireSchema(editUserSchema),
+    controller.editUser
 );
+
 
 export default router;

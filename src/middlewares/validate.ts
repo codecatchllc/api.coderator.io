@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { Validator } from 'jsonschema';
 import validator from 'validator';
+import capitalize from '../utils/capitalize';
 
 const defaultOptions = {
   required: true,
@@ -20,9 +21,14 @@ export const requireSchema = (schema: object, options = {}) => {
 
     const v = jsValidator.validate(body, schema, validatorOptions);
     if (!v.valid) {
+      const errors: { [key: string]: string } = {};
+      v.errors.forEach(err => {
+        if (err.path.length > 0) {
+          errors[err.path[0]] = capitalize(err.message);
+        }
+      });
       res.status(400).json({
-        error: 'Request body validation failed',
-        details: v.errors.map(err => `${err.property}: ${err.message}`),
+        errors,
       });
       return;
     }

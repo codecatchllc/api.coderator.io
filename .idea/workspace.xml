@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9aa7eb2f-9f59-40bb-bc8d-68d7e69e40e9" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/constants/redis.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/utils/capitalize.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/utils/genPostStatistics.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.husky/commit-msg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.husky/pre-commit" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220524023204_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220524023638_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220609002403_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220610023140_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220610023729_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220616024240_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220620002036_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220629005707_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220629043717_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220629044039_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220629044648_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220704181337_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220706031108_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20220709010450_init/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/migration_lock.toml" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/migrations/migration_lock.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/@types/custom/index.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/@types/custom/index.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/constants/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/constants/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/auth.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/middlewares/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/middlewares/auth.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/middlewares/validate.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/middlewares/validate.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/openapi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/openapi.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/auth.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/schemas/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/schemas/auth.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/urls.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/urls.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2H3eclT6TXCRsp63FbjiscZQBam" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "C:/Users/Nolan/Desktop/api.coderator.io/api.coderator.io",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "yarn",
+    "ts.external.directory.path": "C:\\Users\\Nolan\\OneDrive - UNT System\\Desktop\\api.coderator.io\\api.coderator.io\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9aa7eb2f-9f59-40bb-bc8d-68d7e69e40e9" name="Changes" comment="" />
+      <created>1667518275205</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1667518275205</updated>
+      <workItem from="1667518276720" duration="4453000" />
+      <workItem from="1667529312354" duration="193000" />
+      <workItem from="1667529785149" duration="387000" />
+      <workItem from="1667531575730" duration="88000" />
+      <workItem from="1667531733200" duration="995000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

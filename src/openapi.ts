@@ -1,6 +1,7 @@
 import swaggerJSDoc, { Reference } from 'swagger-jsdoc';
 import { errorResponseSchema } from './schemas';
 import {
+  authenticateWithOAuthSchema,
   changePasswordSchema,
   editUserSchema,
   forgotPasswordSchema,
@@ -21,9 +22,9 @@ const options: swaggerJSDoc.OAS3Options = {
   definition: {
     openapi: '3.0.0.',
     info: {
-      title: 'Coderator API',
+      title: 'CodeCatch React API',
       version: '1.1.1',
-      description: 'A REST+JSON API service for Coderator',
+      description: 'A REST+JSON API service for CodeCatch projects',
     },
     servers: [
       {
@@ -35,6 +36,7 @@ const options: swaggerJSDoc.OAS3Options = {
       schemas: {
         loginSchema: loginSchema as Reference,
         registerSchema: registerSchema as Reference,
+        authenticateWithOAuthSchema: authenticateWithOAuthSchema as Reference,
         forgotPasswordSchema: forgotPasswordSchema as Reference,
         changePasswordSchema: changePasswordSchema as Reference,
         refreshTokenSchema: refreshTokenSchema as Reference,
