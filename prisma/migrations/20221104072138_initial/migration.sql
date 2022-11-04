@@ -3,17 +3,13 @@ CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "password" VARCHAR(255) NOT NULL,
-<<<<<<< Updated upstream:prisma/migrations/20220524023204_init/migration.sql
-    "token" VARCHAR(255) NOT NULL,
-    "isOAuthAccount" BOOLEAN NOT NULL DEFAULT false,
-=======
->>>>>>> Stashed changes:prisma/migrations/20221104000650_initial/migration.sql
     "username" VARCHAR(255) NOT NULL,
     "verified" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lastLoginAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "isOAuthAccount" BOOLEAN NOT NULL DEFAULT false,
+    "authProvider" VARCHAR(255) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -44,10 +40,5 @@ CREATE INDEX "User_email_idx" ON "User"("email");
 -- CreateIndex
 CREATE INDEX "Post_title_idx" ON "Post"("title");
 
-<<<<<<< Updated upstream:prisma/migrations/20220524023204_init/migration.sql
--- CreateIndex
-CREATE UNIQUE INDEX "Post_userId_key" ON "Post"("userId");
-=======
 -- AddForeignKey
 ALTER TABLE "Post" ADD CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
->>>>>>> Stashed changes:prisma/migrations/20221104000650_initial/migration.sql

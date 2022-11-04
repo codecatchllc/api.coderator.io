@@ -22,6 +22,7 @@ model User {
   isActive Boolean @default(true)
   posts Post[]
   isOAuthAccount Boolean @default(false)
+  authProvider String @db.VarChar(255)
 
   @@index([email])
 }

@@ -5,6 +5,7 @@ export type UserModel = {
   password?: string;
   accessToken?: string;
   isOAuthAccount?: boolean;
+  authProvider?: string;
   accessTokenExpires?: number;
   refreshToken?: string;
   verified: boolean;
@@ -41,6 +42,7 @@ export type PostInnerJoinUser = {
 export type LoginSchema = {
   usernameOrEmail: string;
   password: string;
+  captcha: string;
 };
 
 export type AuthenticateWithOAuthSchema = {
@@ -48,7 +50,7 @@ export type AuthenticateWithOAuthSchema = {
 };
 
 export type VerifyEmailSchema = {
-  id: number;
+  id: string;
   token: string;
 };
 

@@ -6,11 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="9aa7eb2f-9f59-40bb-bc8d-68d7e69e40e9" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/20221104000650_initial/migration.sql" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/migrations/migration_lock.toml" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/migrations/migration_lock.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/@types/custom/index.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/@types/custom/index.d.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/controllers/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/auth.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/openapi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/openapi.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/auth.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/schemas/auth.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/schemas/auth.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/urls.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/urls.ts" afterDir="false" />
     </list>
@@ -59,7 +59,7 @@
       <workItem from="1667531575730" duration="88000" />
       <workItem from="1667531733200" duration="995000" />
       <workItem from="1667532851232" duration="194000" />
-      <workItem from="1667533426443" duration="4389000" />
+      <workItem from="1667533426443" duration="15006000" />
     </task>
     <servers />
   </component>

@@ -22,7 +22,6 @@ import {
   ForgotPasswordSchema,
   LoginSchema,
   AuthenticateWithOAuthSchema,
-  VerifyEmailSchema,
   RefreshTokenSchema,
   RegisterSchema,
   UserModel,
@@ -39,7 +38,25 @@ const redis = new Redis(config.REDIS_PORT, config.REDIS_HOST);
 
 const login = async (req: Request, res: Response) => {
   try {
-    const { usernameOrEmail, password } = req.validatedBody as LoginSchema;
+    const { usernameOrEmail, password, captcha } = req.validatedBody as LoginSchema;
+
+    const { data } = await axios.post(
+      `https://www.google.com/recaptcha/api/siteverify?secret=${config.RECAPTCHA_SECRET}&response=${captcha}`,
+      null,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+        },
+      }
+    );
+    if (!data.success) {
+      res.status(400).json({
+        errors: {
+          captcha: 'The provided captcha code is invalid',
+        },
+      });
+      return;
+    }
 
     // Regex to test if "usernameOrEmail" is an email or username
     const isEmail = EMAIL_REGEX.test(usernameOrEmail);
@@ -55,6 +72,51 @@ const login = async (req: Request, res: Response) => {
       res.status(400).json({
         usernameOrEmail: `The ${key} you entered doesn't belong to an account`,
       });
+      return;
+    }
+
+    if(user.isOAuthAccount) {
+      if (user.authProvider == "google") {
+        res.status(400).json({
+          usernameOrEmail: `Please login through your Account Provider (Google).`,
+        });
+        return;
+      } else if (user.authProvider == 'github') {
+        res.status(400).json({
+          usernameOrEmail: `Please login through your Account Provider (Github).`,
+        });
+        return;
+      }
+    }
+
+    if(!user.verified) {
+      res.status(403).json({
+        usernameOrEmail: `Please verify your email. A new verification email has been sent to you.`,
+      });
+
+      const redisToken = await redis.get(EMAIL_VERIFICATION_PREFIX + user.id);
+      if (!redisToken) {
+        await redis.del(EMAIL_VERIFICATION_PREFIX + user.id);
+      }
+
+      const token = uuidv4();
+
+      // Expire email verification token after 24 hours (60 * 60 * 24)
+      await redis.set(
+        EMAIL_VERIFICATION_PREFIX + user.id,
+        token,
+        'EX',
+        60 * 60 * 24
+      );
+
+      const html = `
+    <p>Please click the following link to verify your email:</p>
+    <a href="http://${process.env.CLIENT_URL}/verify/${user.id}/${token}">http://${process.env.CLIENT_URL}/verify/${user.id}/${token}</a>
+    <p>If you do not follow the link within 24 hours of receiving this email, your account will be permanently deleted.</p>
+    `;
+
+      await sendEmail(user.email, 'CodeCatch: Verify Your Email', html);
+
       return;
     }
 
@@ -104,11 +166,9 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
     const decodedUser = jwt.verify(
         encodedUser,
         config.ACCESS_TOKEN_SECRET as Secret
-    ) as { email: string; username: string };
+    ) as { email: string; username: string; provider: string };
 
-    const { email: unsanitizedEmail, username } = decodedUser;
-
-    console.log(decodedUser);
+    const { email: unsanitizedEmail, username, provider } = decodedUser;
 
     const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
 
@@ -122,6 +182,26 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
     // If the OAuth user is trying to log in instead of signing up
     if (userFound) {
       try {
+        if(userFound.authProvider != provider) {
+          if (userFound.authProvider == 'google') {
+            res.status(400).json({
+              usernameOrEmail: `Please login through the correct Account Provider (Google).`,
+            });
+            return;
+          } else if (userFound.authProvider  == 'github') {
+            res.status(400).json({
+              usernameOrEmail: `Please login through the correct Account Provider (GitHub).`,
+            });
+            return;
+          }
+          else {
+            res.status(400).json({
+              usernameOrEmail: `Email/Username already exist. Please login normally using a username and password you created on sign-up.`,
+            });
+            return;
+          }
+        }
+
         userFound.lastLoginAt = new Date(Date.now());
 
         const updatedUser: UserModel = await User.update({
@@ -158,6 +238,7 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
           password: '',
           verified: true,
           isOAuthAccount: true,
+          authProvider: provider,
         },
         include: { posts: true },
       });
@@ -229,17 +310,17 @@ const register = async (req: Request, res: Response) => {
     });
 
     if (userFound?.email === email) {
-      res.status(400).json({ email: 'That email is taken' });
+      res.status(410).json({ email: 'That email is taken' });
       return;
     }
 
     if (userFound?.username === username) {
-      res.status(400).json({ username: 'That username is taken' });
+      res.status(411).json({ username: 'That username is taken' });
       return;
     }
 
     if (password !== confirmPassword) {
-      res.status(400).json({ confirmPassword: 'Passwords do not match' });
+      res.status(412).json({ confirmPassword: 'Passwords do not match' });
       return;
     }
 
@@ -250,6 +331,9 @@ const register = async (req: Request, res: Response) => {
         email,
         username,
         password: hash,
+        isOAuthAccount: false,
+        authProvider: "credentials",
+        verified: false
       },
       include: {
         posts: true,
@@ -289,7 +373,10 @@ const register = async (req: Request, res: Response) => {
 
 const verifyEmail = async (req: Request, res: Response) => {
   try {
-    const { id, token } = req.validatedBody as VerifyEmailSchema;
+    const splitURL = req.path.split("/");
+
+    const id = parseInt(splitURL[2]);
+    const token = splitURL[3];
 
     const user = await User.findUnique({
       where: { id },
@@ -379,7 +466,7 @@ const forgotPassword = async (req: Request, res: Response) => {
     const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
 
     const user = await User.findUnique({ where: { email } });
-    if (!user || user.isOAuthAccount) {
+    if (!user) {
       res
         .status(400)
         .json({
@@ -388,6 +475,38 @@ const forgotPassword = async (req: Request, res: Response) => {
           }
         });
       return;
+    }
+
+    if(user.isOAuthAccount) {
+      if (user.authProvider == 'github') {
+        res
+          .status(400)
+          .json({
+            errors: {
+              email: 'Please login through your associated provider (GitHub).'
+            }
+          });
+        return;
+      } else if (user.authProvider == 'google') {
+        res
+          .status(400)
+          .json({
+            errors: {
+              email: 'Please login through your associated provider (Google).'
+            }
+          });
+        return;
+      }
+      else {
+        res
+          .status(500)
+          .json({
+            errors: {
+              email: 'There is an issue with your account. Please contact the development team.'
+            }
+          });
+        return;
+      }
     }
 
     const token = uuidv4();
@@ -443,6 +562,38 @@ const changePassword = async (req: Request, res: Response) => {
     if (!user) {
       res.status(400).json({ error: 'User no longer exists' });
       return;
+    }
+
+    if(user.isOAuthAccount) {
+      if (user.authProvider == 'github') {
+        res
+          .status(400)
+          .json({
+            errors: {
+              email: 'Please login through your associated provider (GitHub).'
+            }
+          });
+        return;
+      } else if (user.authProvider == 'google') {
+        res
+          .status(400)
+          .json({
+            errors: {
+              email: 'Please login through your associated provider (Google).'
+            }
+          });
+        return;
+      }
+      else {
+        res
+          .status(500)
+          .json({
+            errors: {
+              email: 'There is an issue with your account. Please contact the development team.'
+            }
+          });
+        return;
+      }
     }
 
     // Update the user's password

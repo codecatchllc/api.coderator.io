@@ -11,7 +11,6 @@ export default {
     forgotPassword: '/forgot-password',
     changePassword: '/change-password',
     register: '/register',
-    registerOAuth: '/register/oauth',
     authenticateWithOAuth: '/oauth',
     edit: '/edit',
     verify: '/verify',

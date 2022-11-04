@@ -22,8 +22,9 @@ export const loginSchema: Schema = {
       minLength: PASSWORD_CHAR_MIN,
       maxLength: PASSWORD_CHAR_MAX,
     },
+    captcha: { type: 'string' },
   },
-  required: ['usernameOrEmail', 'password'],
+  required: ['usernameOrEmail', 'password', 'captcha'],
   additionalProperties: false,
 };
 
