@@ -166,9 +166,9 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
     const decodedUser = jwt.verify(
         encodedUser,
         config.ACCESS_TOKEN_SECRET as Secret
-    ) as { email: string; username: string; provider: string };
+    ) as { email: string; username: string; authProvider: string };
 
-    const { email: unsanitizedEmail, username, provider } = decodedUser;
+    const { email: unsanitizedEmail, username, authProvider } = decodedUser;
 
     const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
 
@@ -182,7 +182,7 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
     // If the OAuth user is trying to log in instead of signing up
     if (userFound) {
       try {
-        if(userFound.authProvider != provider) {
+        if(userFound.authProvider != authProvider) {
           if (userFound.authProvider == 'google') {
             res.status(400).json({
               usernameOrEmail: `Please login through the correct Account Provider (Google).`,
@@ -230,7 +230,8 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
         });
         return;
       }
-    } else {
+    }
+    else {
       const user: UserModel = await User.create({
         data: {
           email,
@@ -238,7 +239,7 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
           password: '',
           verified: true,
           isOAuthAccount: true,
-          authProvider: provider,
+          authProvider
         },
         include: { posts: true },
       });

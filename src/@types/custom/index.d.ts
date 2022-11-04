@@ -5,7 +5,7 @@ export type UserModel = {
   password?: string;
   accessToken?: string;
   isOAuthAccount?: boolean;
-  authProvider?: string;
+  authProvider: string;
   accessTokenExpires?: number;
   refreshToken?: string;
   verified: boolean;
