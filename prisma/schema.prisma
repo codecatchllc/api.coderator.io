@@ -8,6 +8,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 model User {
@@ -16,12 +17,15 @@ model User {
   password String @db.VarChar(255)
   username String @db.VarChar(255) @unique
   biography String @db.VarChar(160) @default("This user has not yet set their bio")
+  verified Boolean @default(false)
   createdAt DateTime @default(now())
   lastLoginAt DateTime @default(now())
   isActive Boolean @default(true)
   posts Post[]
   followedBy Follows[] @relation("following")
   following  Follows[] @relation("follower")
+  isOAuthAccount Boolean @default(false)
+  authProvider String @db.VarChar(255)
   @@index([email])
 }
 
@@ -39,12 +43,14 @@ model Follows {
 
 model Post {
   id Int @id @default(autoincrement())
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
   title String @db.VarChar(100) @default("Untitled")
-  content String @db.VarChar(8000)
+  content String @db.VarChar(40000)
   language String @db.VarChar(50) @default("plaintext")
-  privacy String
+  privacy String @db.VarChar(7)
   createdAt DateTime @default(now())
   expirationDate DateTime?
+
+  @@index([title])
 }

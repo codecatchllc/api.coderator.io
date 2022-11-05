@@ -4,8 +4,11 @@ export type UserModel = {
   username: string;
   password?: string;
   accessToken?: string;
+  isOAuthAccount?: boolean;
+  authProvider: string;
   accessTokenExpires?: number;
   refreshToken?: string;
+  verified: boolean;
   createdAt: Date;
   lastLoginAt: Date;
   biography: string;
@@ -48,6 +51,16 @@ export type PostInnerJoinUser = {
 export type LoginSchema = {
   usernameOrEmail: string;
   password: string;
+  captcha: string;
+};
+
+export type AuthenticateWithOAuthSchema = {
+  encodedUser: string;
+};
+
+export type VerifyEmailSchema = {
+  id: string;
+  token: string;
 };
 
 export type RegisterSchema = {
