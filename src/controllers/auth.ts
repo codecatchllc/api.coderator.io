@@ -747,6 +747,19 @@ const deleteaccount = async (req: Request, res: Response) => {
       },
     });
 
+    await Follow.deleteMany({
+      where: {
+        OR: [
+          {
+            followerId: req.user.id,
+          },
+          {
+            followingId: req.user.id,
+          },
+        ],
+      },
+    });
+
     const userexists = await User.findUnique({
       where: {
         id: req.user.id,
