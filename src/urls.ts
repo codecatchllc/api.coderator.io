@@ -11,10 +11,12 @@ export default {
     forgotPassword: '/forgot-password',
     changePassword: '/change-password',
     register: '/register',
+    authenticateWithOAuth: '/oauth',
     edit: '/edit',
     verify: '/verify',
     token: '/token',
     me: '/me',
+    username: '/user/:username',
     deleteaccount: '/deleteaccount',
   },
   post: {
