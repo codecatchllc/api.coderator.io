@@ -11,7 +11,6 @@ import {
 import { Follow, Post, User } from '../models/init';
 import config from '../utils/config';
 import { genAccessToken } from '../utils/genAccessToken';
-import genPostStatistics from '../utils/genPostStatistics';
 import { genRefreshToken } from '../utils/genRefreshToken';
 import { generatePasswordHash, validatePassword } from '../utils/password';
 import { sendEmail } from '../utils/sendEmail';
@@ -30,7 +29,6 @@ import {
 import {
   ACCESS_TOKEN_LIFESPAN,
   EMAIL_REGEX,
-  PRIVATE,
   REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_LIFESPAN,
 } from './../constants/index';
