@@ -517,10 +517,10 @@ const forgotPassword = async (req: Request, res: Response) => {
 
     const html = `
     <h4>Reset Password</h4>
-    <p>There as been a request to reset your coderator.io password. Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you did not initiate this request.</p>
+    <p>There has been a request to reset your coderator.io password. Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you did not initiate this request.</p>
     <p>You will have to submit a new request if you do not reset your password within the next two hours.</p>
     <p>Click the following link to reset your password:</p>
-    <a href=""${config.PROTOCOL}://${config.CLIENT_URL}/change-password/${token}">"${config.PROTOCOL}://${config.CLIENT_URL}/change-password/${token}</a>
+    <a href="${config.PROTOCOL}://${config.CLIENT_URL}/change-password/${token}">${config.PROTOCOL}://${config.CLIENT_URL}/change-password/${token}</a>
     `;
 
     await sendEmail(email, 'Coderator: Reset Password', html);
