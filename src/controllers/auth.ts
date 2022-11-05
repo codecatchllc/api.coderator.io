@@ -8,13 +8,13 @@ import {
   EMAIL_VERIFICATION_PREFIX,
   FORGOT_PASSWORD_PREFIX,
 } from '../constants/redis';
-import { User } from '../models/init';
+import { Follow, Post, User } from '../models/init';
 import config from '../utils/config';
 import { genAccessToken } from '../utils/genAccessToken';
-import genPostStatistics from '../utils/genPostStatistics';
 import { genRefreshToken } from '../utils/genRefreshToken';
 import { generatePasswordHash, validatePassword } from '../utils/password';
 import { sendEmail } from '../utils/sendEmail';
+
 import {
   AuthPayload,
   ChangePasswordSchema,
@@ -29,7 +29,6 @@ import {
 import {
   ACCESS_TOKEN_LIFESPAN,
   EMAIL_REGEX,
-  PRIVATE,
   REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_LIFESPAN,
 } from './../constants/index';
@@ -697,30 +696,13 @@ const getUserByUsername = async (req: Request, res: Response) => {
       return;
     }
 
-    user.numPosts = user.posts?.length;
-
     delete user.password;
 
-    const postStatistics = genPostStatistics(user.posts || []);
-
-    const posts = user.posts
-        ?.filter(post =>
-            req.user.id !== user.id ? post.privacy !== PRIVATE : post.privacy
-        )
-        .map(post => {
-          return {
-            user: {
-              username: user.username,
-            },
-            ...post,
-          };
-        });
-
-    res.json({ user: { ...user, posts }, postStatistics });
+    res.json({ user: { ...user } });
   } catch (error) {
     console.error('getUserByUsername() error: ', error);
     res.status(500).json({
-      error: `There was a server-side issue while fetching the user with the username provided`,
+      error: `There was an error fetching user with username "${req.params.username}", please try again later`,
     });
   }
 };
@@ -757,15 +739,21 @@ const editUser = async (req: Request, res: Response) => {
   }
 };
 
-const deleteAccount = async (req: Request, res: Response) => {
+const deleteaccount = async (req: Request, res: Response) => {
   try {
-    const user = await User.findUnique({
+    await Post.deleteMany({
+      where: {
+        userId: req.user.id,
+      },
+    });
+
+    const userexists = await User.findUnique({
       where: {
         id: req.user.id,
       },
     });
 
-    if (!user) {
+    if (!userexists) {
       res.status(404).json({
         error: 'User could not be found',
       });
@@ -780,9 +768,207 @@ const deleteAccount = async (req: Request, res: Response) => {
 
     res.status(204).send();
   } catch (error) {
-    console.error('deleteAccount() error: ', error);
+    console.log(error);
     res.status(500).json({
-      error: 'There was a server-side issue while deleting your account',
+      error: 'There was an error deleting your account, please try again later',
+    });
+  }
+};
+
+const getFollowers = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = await User.findUnique({
+      where: { username },
+      include: { followedBy: true },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    const followers = user.followedBy.map(followedBy => {
+      return {
+        followerId: followedBy.followerId,
+      };
+    });
+
+    res.json({ followers });
+  } catch (error) {
+    console.error('getFollowers() error: ', error);
+    res.status(500).json({
+      error: `There was an error fetching followers for user with username "${req.params.username}", please try again later`,
+    });
+  }
+};
+
+const getFollowing = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = await User.findUnique({
+      where: { username },
+      include: { following: true },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    const following = user.following.map(following => {
+      return {
+        followingId: following.followingId,
+      };
+    });
+
+    res.json({ following });
+  } catch (error) {
+    console.error('getFollowing() error: ', error);
+    res.status(500).json({
+      error: `There was an error fetching who is following "${req.params.username}", please try again later`,
+    });
+  }
+};
+
+const followUser = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = await User.findUnique({
+      where: { username },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    // dont allow a user to follow themselves
+    if (req.user.id === user.id) {
+      res.status(400).json({ error: 'You cannot follow yourself' });
+      return;
+    }
+
+    //check if a follow relationship already exists
+    const followrelationship = await Follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: req.user.id,
+          followingId: user.id,
+        },
+      },
+    });
+
+    // check if the follow relationship already exists
+    if (followrelationship) {
+      res.status(400).json({ error: 'You are already following this user' });
+      return;
+    }
+
+    // create the follow relationship
+    const follow = await Follow.create({
+      data: {
+        followerId: req.user.id,
+        followingId: user.id,
+      },
+    });
+
+    res.json({ follow });
+  } catch (error) {
+    console.error('followUser() error: ', error);
+    res.status(500).json({
+      error: `There was an error following "${req.params.username}", please try again later`,
+    });
+  }
+};
+
+const unfollowUser = async (req: Request, res: Response) => {
+  try {
+    const username = req.params.username || '';
+
+    const user = await User.findUnique({
+      where: { username },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    // dont allow a user to unfollow themselves
+    if (req.user.id === user.id) {
+      res.status(400).json({ error: 'You cannot unfollow yourself' });
+      return;
+    }
+
+    //check if a follow relationship already exists
+    const followrelationship = await Follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: req.user.id,
+          followingId: user.id,
+        },
+      },
+    });
+
+    // check if the follow relationship already exists
+    if (!followrelationship) {
+      res.status(400).json({ error: 'You are not following this user' });
+      return;
+    }
+
+    // delete the follow relationship
+    const unfollow = await Follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId: req.user.id,
+          followingId: user.id,
+        },
+      },
+    });
+
+    res.json({ unfollow });
+  } catch (error) {
+    console.error('unfollowUser() error: ', error);
+    res.status(500).json({
+      error: `There was an error unfollowing "${req.params.username}", please try again later`,
+    });
+  }
+};
+
+const getUserById = async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    const user = (await User.findUnique({
+      where: { id },
+    })) as UserModel;
+
+    if (!user) {
+      res.status(404).json({
+        error: 'User could not be found',
+      });
+      return;
+    }
+
+    delete user.password;
+
+    res.json({ user: { username: user.username, createdAt: user.createdAt } });
+  } catch (error) {
+    console.error('getUserById() error: ', error);
+    res.status(500).json({
+      error: `There was an error getting user with id "${req.params.id}", please try again later`,
     });
   }
 };
@@ -798,6 +984,11 @@ export default {
   refreshToken,
   me,
   getUserByUsername,
+  getUserById,
   editUser,
-  deleteAccount,
+  deleteaccount,
+  getFollowers,
+  getFollowing,
+  followUser,
+  unfollowUser,
 };

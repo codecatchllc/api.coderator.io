@@ -121,6 +121,7 @@ export const editUserSchema: Schema = {
       maxLength: EMAIL_CHAR_MAX,
     },
     username: { type: 'string' },
+    biography: { type: 'string' },
   },
   additionalProperties: false,
 };

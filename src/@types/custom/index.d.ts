@@ -11,8 +11,11 @@ export type UserModel = {
   verified: boolean;
   createdAt: Date;
   lastLoginAt: Date;
+  biography: string;
   isActive: boolean;
   posts?: PostModel[];
+  followedBy?: FollowModel[];
+  following?: FollowModel[];
   numPosts?: number;
 };
 
@@ -25,6 +28,12 @@ export type PostModel = {
   privacy: string;
   createdAt: Date;
   expirationDate: Date | null;
+};
+
+export type FollowModel = {
+  followerId: number;
+  followingId: number;
+  id: string;
 };
 
 export type PostInnerJoinUser = {
@@ -93,6 +102,7 @@ export type GetSimilarPostsSchema = {
 export type EditUserSchema = {
   email?: string;
   username?: string;
+  biography: string;
 };
 
 export type CaptchaValidation = {
