@@ -114,7 +114,7 @@ const login = async (req: Request, res: Response) => {
     <p>If you do not follow the link within 24 hours of receiving this email, your account will be permanently deleted.</p>
     `;
 
-      await sendEmail(user.email, 'CodeCatch: Verify Your Email', html);
+      await sendEmail(user.email, 'Coderator: Verify Your Email', html);
 
       return;
     }
@@ -256,11 +256,11 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
 
       const html = `
       <h4>Registration Completed!</h4>
-      <p>Hello ${user.username}, thank you for becoming a member of <a href="https://codecatch.net">CodeCatch.net</a>. You can get started on CodeCatch by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a> or <a href="${config.PROTOCOL}://${config.CLIENT_URL}/search">searching all posts</a>.</p>
+      <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on Coderator by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a> or <a href="${config.PROTOCOL}://${config.CLIENT_URL}/search">searching all posts</a>.</p>
       <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
       `;
 
-      await sendEmail(user.email, 'CodeCatch: Registration Completed!', html);
+      await sendEmail(user.email, 'Coderator: Registration Completed!', html);
 
       res.status(201).json({ user });
     }
@@ -356,7 +356,7 @@ const register = async (req: Request, res: Response) => {
     <p>If you do not follow the link within 24 hours of receiving this email, your account will be permanently deleted.</p>
     `;
 
-    await sendEmail(user.email, 'CodeCatch: Verify Your Email', html);
+    await sendEmail(user.email, 'Coderator: Verify Your Email', html);
 
     res.status(201).json({ user });
   } catch (error) {
@@ -439,13 +439,13 @@ const verifyEmail = async (req: Request, res: Response) => {
 
     const html = `
     <h4>Registration Completed!</h4>
-    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on CodeCatch by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a>.</p>
+    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on Coderator by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a>.</p>
     <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
     `;
 
     await sendEmail(
         updatedUser.email,
-        'CodeCatch: Registration Completed!',
+        'Coderator: Registration Completed!',
         html
     );
 

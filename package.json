@@ -1,22 +1,22 @@
 {
-  "name": "codecatch-react-api",
+  "name": "api.coderator.io",
   "version": "0.0.0-semantic-release",
   "description": "API for Coderator",
   "main": "./src/server.ts",
   "author": "CodeCatch LLC <codecatchservice@gmail.com>",
   "license": "MIT",
   "private": true,
-  "homepage": "https://github.com/codecatchllc/codecatch-react-api/blob/main/README.md",
+  "homepage": "https://github.com/codecatchllc/api.coderator.io/blob/main/README.md",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codecatchllc/codecatch-react-api"
+    "url": "https://github.com/codecatchllc/api.coderator.io"
   },
   "keywords": [
     "expressjs",
     "typescript"
   ],
   "bugs": {
-    "url": "https://github.com/codecatchllc/codecatch-react-api/issues"
+    "url": "https://github.com/codecatchllc/api.coderator.io/issues"
   },
   "scripts": {
     "start": "ts-node --files ./src/server.ts",
