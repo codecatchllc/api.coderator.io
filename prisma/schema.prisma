@@ -54,3 +54,18 @@ model Post {
 
   @@index([title])
 }
+
+model Session {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user             User      @relation(fields: [userId], references: [id])
+  userId           Int
+  title            String    @default("Untitled") @db.VarChar(100)
+  content          String    @db.VarChar(40000)
+  language         String    @default("plaintext") @db.VarChar(50)
+  privacy          String
+  createdAt        DateTime  @default(now())
+  expirationDate   DateTime?
+  sessionTimeout   DateTime?
+  currentUserCount Int
+  currentUserList  Json?
+}
