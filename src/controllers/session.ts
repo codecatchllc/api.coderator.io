@@ -1,7 +1,4 @@
 import { Request, Response } from 'express';
-import {
-  SessionSchema,
-} from '../@types/custom';
 
 const createSession = async (req: Request, res: Response) => {
     try {
