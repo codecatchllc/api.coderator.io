@@ -3,7 +3,7 @@ import { PRIVACY_OPTIONS } from '../constants';
 import { DEFAULT_LANGUAGE, DEFAULT_TITLE } from '../constants/index';
 
 // REQUEST SCHEMAS
-export const SessionSchema: Schema = {
+export const sessionSchema: Schema = {
   type: 'object',
   properties: {
     title: { type: 'string', default: DEFAULT_TITLE },
