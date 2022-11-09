@@ -14,6 +14,7 @@ export type UserModel = {
   biography: string;
   isActive: boolean;
   posts?: PostModel[];
+  sessions?: SessionModel[];
   followedBy?: FollowModel[];
   following?: FollowModel[];
   numPosts?: number;
@@ -28,6 +29,20 @@ export type PostModel = {
   privacy: string;
   createdAt: Date;
   expirationDate: Date | null;
+};
+
+export type SessionModel = {
+  userId: number;
+  user?: UserModel;
+  title: string;
+  content: string;
+  language: string;
+  privacy: string;
+  createdAt: Date;
+  expirationDate: Date | null;
+  sessionTimeout: Date | null;
+  currentUserCount?: number;
+  currentUserList?: Json;
 };
 
 export type FollowModel = {
@@ -103,6 +118,18 @@ export type EditUserSchema = {
   email?: string;
   username?: string;
   biography: string;
+};
+
+export type SessionSchema = {
+  userId: number;
+  title: string;
+  content: string;
+  language: string;
+  privacy: string;
+  expirationDate?: Date;
+  sessionTimeout?: Date;
+  currentUserCount?: number;
+  currentUserList?: Json;
 };
 
 export type CaptchaValidation = {
