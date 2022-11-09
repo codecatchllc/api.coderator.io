@@ -1,3 +1,5 @@
+import { json } from "stream/consumers";
+
 export type UserModel = {
   id: number;
   email: string;
@@ -107,6 +109,21 @@ export type PostSchema = {
   language: string;
   privacy: string;
   expirationDate?: Date;
+};
+
+export type SessionSchema = {
+  id: number;
+  user: UserModel;
+  userId: number;
+  title: string;
+  content: string;
+  language: string;
+  privacy: string;
+  createdAt: Date;
+  expirationDate?: Date;
+  sessionTimeout?: Date;
+  currentUserCount: number;
+  currentUserList:  string;
 };
 
 export type GetSimilarPostsSchema = {
