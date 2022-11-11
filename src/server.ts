@@ -28,39 +28,15 @@ app.listen(config.PORT, () => {
   console.log(`Listening on port ${config.PORT}`);
 });
 
-// const httpServer = createServer(app);
-
-
-// //create a socket server
-// const io = new Server(httpServer, {
-//   cors: {
-//     origin: `${config.PROTOCOL}://${config.CLIENT_URL}`,
-//     credentials: true,
-//   },
-// });
-
-// //listen for a connection
-// io.on('connection', (socket) => {
-//   console.log('a user connected');
-//   //output all connected users
-//   console.log(io.engine.clientsCount);
-
-//   //listen for a message
-//   socket.on('message', (message) => {
-//     console.log('message: ' + message);
-//     //emit the message to all connected clients
-//     io.emit('message', message);
-//   });
-
-//   //listen for a disconnect
-//   socket.on('disconnect', () => {
-//     console.log('a user disconnected');
-//   });
-// });
 
 const server = createServer(app);
 
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: `${config.PROTOCOL}://${config.CLIENT_URL}`,
+        credentials: true,
+    }
+});
 
 const userSocketMap = {};
 function getAllConnectedClients(roomId: string) {
@@ -69,7 +45,7 @@ function getAllConnectedClients(roomId: string) {
         (socketId) => {
             return {
                 socketId,
-                username: userSocketMap[socketId],
+                username: userSocketMap[socketId].username,
             };
         }
     );
@@ -78,25 +54,28 @@ function getAllConnectedClients(roomId: string) {
 io.on('connection', (socket) => {
     console.log('socket connected', socket.id);
 
-    socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
-        userSocketMap[socket.id, roomId] = username;
-        console.log(socket.id, 'joined', roomId);
+    socket.on(ACTIONS.JOIN, ( roomId, username ) => {
+        userSocketMap[socket.id] = { username, roomId };
+        console.log('User: ', username, ' with socket ', socket.id, 'joined', roomId);
+        console.log(userSocketMap);
         socket.join(roomId);
         const clients = getAllConnectedClients(roomId);
-        clients.forEach(({ socketId }) => {
-            io.to(socketId).emit(ACTIONS.JOINED, {
+        clients.forEach((client) => {
+            const socketId = client.socketId
+            io.to(socketId).emit(ACTIONS.JOINED, 
                 clients,
-                username,
-                socketId: socket.id,
-            });
+                {user: username},
+                {socketID: socket.id},
+            );
         });
     });
 
-    socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
-        socket.in(roomId).emit(ACTIONS.CODE_CHANGE, { code });
+    socket.on(ACTIONS.CODE_CHANGE, ( roomId, code ) => {
+        io.to(roomId).emit(ACTIONS.CODE_CHANGE,  code );
+        console.log(code, " ", roomId);
     });
 
-    socket.on(ACTIONS.SYNC_CODE, ({ socketId, code }) => {
+    socket.on(ACTIONS.SYNC_CODE, ( code, socketId ) => {
         io.to(socketId).emit(ACTIONS.CODE_CHANGE, { code });
     });
 
@@ -104,7 +83,8 @@ io.on('connection', (socket) => {
         io.to(socketId).emit(ACTIONS.JOIN, { username });
     });
 
-    socket.on('disconnecting', () => {
+    socket.on('disconnect', () => {
+        console.log('User Disconnected');
         const rooms = [...socket.rooms];
         rooms.forEach((roomId) => {
             socket.in(roomId).emit(ACTIONS.DISCONNECTED, {
