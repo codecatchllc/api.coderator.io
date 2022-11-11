@@ -71,7 +71,13 @@ io.on('connection', (socket) => {
     });
 
     socket.on(ACTIONS.CODE_CHANGE, ( roomId, code ) => {
-        io.to(roomId).emit(ACTIONS.CODE_CHANGE,  code );
+        const clients = getAllConnectedClients(roomId);
+        console.log("Clients: ", clients);  // FIND OUT WHY THERE IS NO CLIENTS IN LIST LIKE ABOVE
+        clients.forEach((client) => {
+            const socketId = client.socketId
+            console.log("Socket ID: ", socketId);
+            io.to(socketId).emit(ACTIONS.CODE_CHANGE,  code, );
+        });
         console.log(code, " ", roomId);
     });
 
