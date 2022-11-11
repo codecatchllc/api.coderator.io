@@ -26,6 +26,5 @@ export default {
   },
   post: {
     path: '/post',
-    recentPosts: '/posts/recent',
   },
 };
