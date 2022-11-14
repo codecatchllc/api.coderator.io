@@ -43,6 +43,9 @@ function getAllConnectedClients(roomId: string) {
     // Map
     return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
         (socketId) => {
+            // console.log("RETURNING:");
+            // console.log("SOCKETID: ", socketId);
+            // console.log("USERNAME: ", userSocketMap[socketId].username);
             return {
                 socketId,
                 username: userSocketMap[socketId].username,
@@ -56,40 +59,39 @@ io.on('connection', (socket) => {
 
     socket.on(ACTIONS.JOIN, ( roomId, username ) => {
         userSocketMap[socket.id] = { username, roomId };
-        console.log('User: ', username, ' with socket ', socket.id, 'joined', roomId);
-        console.log(userSocketMap);
+        // console.log('User: ', username, ' with socket ', socket.id, 'joined', roomId);
+        console.log("Socket Map: ", userSocketMap);
+
+        // Joining the room
         socket.join(roomId);
+        
+        // Getting all the clients in the room
         const clients = getAllConnectedClients(roomId);
-        clients.forEach((client) => {
-            const socketId = client.socketId
-            io.to(socketId).emit(ACTIONS.JOINED, 
-                clients,
-                {user: username},
-                {socketID: socket.id},
-            );
-        });
+        console.log("Clients: ", clients); 
+
+        io.to(roomId).emit(ACTIONS.JOINED, 
+            clients,
+            {user: username},
+            {socketId: socket.id}
+        );
     });
 
     socket.on(ACTIONS.CODE_CHANGE, ( roomId, code ) => {
-        const clients = getAllConnectedClients(roomId);
-        console.log("Clients: ", clients);  // FIND OUT WHY THERE IS NO CLIENTS IN LIST LIKE ABOVE
-        clients.forEach((client) => {
-            const socketId = client.socketId
-            console.log("Socket ID: ", socketId);
-            io.to(socketId).emit(ACTIONS.CODE_CHANGE,  code, );
-        });
+        
+        io.to(roomId).emit(ACTIONS.CODE_CHANGE,  code );
         console.log(code, " ", roomId);
     });
 
-    socket.on(ACTIONS.SYNC_CODE, ( code, socketId ) => {
-        io.to(socketId).emit(ACTIONS.CODE_CHANGE, { code });
+    socket.once(ACTIONS.SYNC_CODE, ( code, roomId ) => {
+        io.to(roomId).emit(ACTIONS.CODE_CHANGE, { code });
+        console.log("Syncing: ", code, "to room: ", roomId);
     });
 
     socket.on(ACTIONS.JOIN, ({ socketId, username }) => {
         io.to(socketId).emit(ACTIONS.JOIN, { username });
     });
 
-    socket.on('disconnect', () => {
+    socket.once('disconnect', () => {
         console.log('User Disconnected');
         const rooms = [...socket.rooms];
         rooms.forEach((roomId) => {
@@ -101,6 +103,10 @@ io.on('connection', (socket) => {
         delete userSocketMap[socket.id];
         //socket.leave();
     });
+
+    return () => {
+        socket.removeAllListeners();
+    }
 });
 
 const socketPort = 5001
