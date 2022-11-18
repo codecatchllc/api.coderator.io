@@ -6,6 +6,7 @@ import { requireSchema } from './../middlewares/validate';
 
 const router = Router();
 
+router.get('/post/recent', controller.getRecentSessions);
 // Authentication
 router.use(authenticateWithToken);
 

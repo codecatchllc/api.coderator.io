@@ -303,6 +303,38 @@ const createPost = async (req: Request, res: Response) => {
   }
 };
 
+const getRecentSessions = async (_: Request, res: Response) => {
+  try {
+
+    const posts = await Post.findMany({
+      take: 6,
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+      ],
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            createdAt: true,
+            lastLoginAt: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+    res.json({posts});
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: 'There was an error retrieving recent posts, please try again later',
+    });
+  }
+};
+
 export default {
   getPost,
   getPaginatedPosts,
@@ -310,4 +342,5 @@ export default {
   deletePost,
   getSimilarPosts,
   createPost,
+  getRecentSessions,
 };
