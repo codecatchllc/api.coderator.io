@@ -25,9 +25,14 @@ import {
   RefreshTokenSchema,
   RegisterSchema,
   UserModel,
+  PostSchema,
 } from './../@types/custom/index.d';
 import {
   ACCESS_TOKEN_LIFESPAN,
+  DEFAULT_CONTENT,
+  DEFAULT_LANGUAGE,
+  DEFAULT_PRIVACY,
+  DEFAULT_TITLE,
   EMAIL_REGEX,
   REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_LIFESPAN,
@@ -61,8 +66,8 @@ const login = async (req: Request, res: Response) => {
     const isEmail = EMAIL_REGEX.test(usernameOrEmail);
     const key = isEmail ? 'email' : 'username';
     const whereClause = isEmail
-        ? { email: usernameOrEmail ? usernameOrEmail.toLowerCase() : '' }
-        : { username: usernameOrEmail };
+      ? { email: usernameOrEmail ? usernameOrEmail.toLowerCase() : '' }
+      : { username: usernameOrEmail };
 
     const user = await User.findUnique({
       where: whereClause,
@@ -74,7 +79,7 @@ const login = async (req: Request, res: Response) => {
       return;
     }
 
-    if(user.isOAuthAccount) {
+    if (user.isOAuthAccount) {
       if (user.authProvider == "google") {
         res.status(400).json({
           usernameOrEmail: `Please login through your Account Provider (Google).`,
@@ -88,7 +93,7 @@ const login = async (req: Request, res: Response) => {
       }
     }
 
-    if(!user.verified) {
+    if (!user.verified) {
       res.status(403).json({
         usernameOrEmail: `Please verify your email. A new verification email has been sent to you.`,
       });
@@ -163,8 +168,8 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
     const { encodedUser } = req.validatedBody as AuthenticateWithOAuthSchema;
 
     const decodedUser = jwt.verify(
-        encodedUser,
-        config.ACCESS_TOKEN_SECRET as Secret
+      encodedUser,
+      config.ACCESS_TOKEN_SECRET as Secret
     ) as { email: string; username: string; authProvider: string };
 
     const { email: unsanitizedEmail, username, authProvider } = decodedUser;
@@ -181,13 +186,13 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
     // If the OAuth user is trying to log in instead of signing up
     if (userFound) {
       try {
-        if(userFound.authProvider != authProvider) {
+        if (userFound.authProvider != authProvider) {
           if (userFound.authProvider == 'google') {
             res.status(400).json({
               usernameOrEmail: `Please login through the correct Account Provider (Google).`,
             });
             return;
-          } else if (userFound.authProvider  == 'github') {
+          } else if (userFound.authProvider == 'github') {
             res.status(400).json({
               usernameOrEmail: `Please login through the correct Account Provider (GitHub).`,
             });
@@ -285,13 +290,13 @@ const register = async (req: Request, res: Response) => {
     const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
 
     const { data } = await axios.post(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${config.RECAPTCHA_SECRET}&response=${captcha}`,
-        null,
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-          },
-        }
+      `https://www.google.com/recaptcha/api/siteverify?secret=${config.RECAPTCHA_SECRET}&response=${captcha}`,
+      null,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+        },
+      }
     );
     if (!data.success) {
       res.status(400).json({
@@ -344,10 +349,10 @@ const register = async (req: Request, res: Response) => {
 
     // Expire email verification token after 24 hours (60 * 60 * 24)
     await redis.set(
-        EMAIL_VERIFICATION_PREFIX + user.id,
-        token,
-        'EX',
-        60 * 60 * 24
+      EMAIL_VERIFICATION_PREFIX + user.id,
+      token,
+      'EX',
+      60 * 60 * 24
     );
 
     const html = `
@@ -388,8 +393,8 @@ const verifyEmail = async (req: Request, res: Response) => {
 
     if (!token) {
       res
-          .status(400)
-          .json({ error: 'Email verification token does not exist' });
+        .status(400)
+        .json({ error: 'Email verification token does not exist' });
       return;
     }
 
@@ -397,16 +402,16 @@ const verifyEmail = async (req: Request, res: Response) => {
     const redisToken = await redis.get(EMAIL_VERIFICATION_PREFIX + user.id);
     if (!redisToken) {
       res
-          .status(404)
-          .json({ error: 'Email verification token expired or does not exist' });
+        .status(404)
+        .json({ error: 'Email verification token expired or does not exist' });
       return;
     }
 
     // If the URL token and the Redis token do not match
     if (redisToken !== token) {
       res
-          .status(400)
-          .json({ error: 'Invalid email verification token provided' });
+        .status(400)
+        .json({ error: 'Invalid email verification token provided' });
       return;
     }
 
@@ -444,9 +449,9 @@ const verifyEmail = async (req: Request, res: Response) => {
     `;
 
     await sendEmail(
-        updatedUser.email,
-        'Coderator: Registration Completed!',
-        html
+      updatedUser.email,
+      'Coderator: Registration Completed!',
+      html
     );
 
     res.status(201).json({ user: updatedUser });
@@ -461,7 +466,7 @@ const verifyEmail = async (req: Request, res: Response) => {
 const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email: unsanitizedEmail } =
-        req.validatedBody as ForgotPasswordSchema;
+      req.validatedBody as ForgotPasswordSchema;
 
     const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
 
@@ -477,7 +482,7 @@ const forgotPassword = async (req: Request, res: Response) => {
       return;
     }
 
-    if(user.isOAuthAccount) {
+    if (user.isOAuthAccount) {
       if (user.authProvider == 'github') {
         res
           .status(400)
@@ -564,7 +569,7 @@ const changePassword = async (req: Request, res: Response) => {
       return;
     }
 
-    if(user.isOAuthAccount) {
+    if (user.isOAuthAccount) {
       if (user.authProvider == 'github') {
         res
           .status(400)
@@ -986,6 +991,58 @@ const getUserById = async (req: Request, res: Response) => {
   }
 };
 
+const getSession = async (req: Request, res: Response) => {
+  try {
+    const session = await Post.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            createdAt: true,
+            lastLoginAt: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+    if (session) {
+      res.json(session);
+    } else {
+      res.status(404).json({ error: 'Resource not found' });
+    }
+  } catch (error) {
+    res.status(500).json({
+      error: 'There was an error retrieving this session, please try again later',
+    });
+  }
+};
+
+const createSession = async (req: Request, res: Response) => {
+  try {
+    const newPost = {
+      title: DEFAULT_TITLE,
+      content: DEFAULT_CONTENT,
+      language: DEFAULT_LANGUAGE,
+      privacy: DEFAULT_PRIVACY,
+      userId: req.params.id || 1500,
+    };
+    console.log(req.params.id);
+
+    const session = await Post.create({ data: newPost as PostSchema });
+    res.json({ session });
+  } catch (error) {
+    console.error('createSession() error: ', error);
+    console.log(error);
+    res.status(500).json({
+      error: 'There was an error creating this post, please try again later',
+    });
+  }
+};
+
+
 export default {
   login,
   authenticateWithOAuth,
@@ -1004,4 +1061,6 @@ export default {
   getFollowing,
   followUser,
   unfollowUser,
+  getSession,
+  createSession,
 };

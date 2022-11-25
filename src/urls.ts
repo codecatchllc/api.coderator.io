@@ -23,6 +23,8 @@ export default {
     following: '/following/:username',
     follow: '/follow/:username',
     unfollow: '/unfollow/:username',
+    specificSession: '/session/:id',
+    createSession: '/new/session',
   },
   post: {
     path: '/post',

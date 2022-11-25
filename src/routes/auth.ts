@@ -3,12 +3,12 @@ import controller from '../controllers/auth';
 import { authenticateWithToken } from '../middlewares/auth';
 import { requireSchema } from '../middlewares/validate';
 import {
-  authenticateWithOAuthSchema,
-  changePasswordSchema,
-  editUserSchema,
-  forgotPasswordSchema,
-  loginSchema,
-  registerSchema,
+    authenticateWithOAuthSchema,
+    changePasswordSchema,
+    editUserSchema,
+    forgotPasswordSchema,
+    loginSchema,
+    registerSchema,
 } from '../schemas/auth';
 import urls from '../urls';
 
@@ -301,6 +301,10 @@ router.get(urls.auth.followers, controller.getFollowers);
 router.get(urls.auth.following, controller.getFollowing);
 
 router.get(urls.auth.id, controller.getUserById);
+
+router.get(urls.auth.specificSession, controller.getSession);
+
+router.get(urls.auth.createSession, controller.createSession);
 
 // Authentication
 router.use(authenticateWithToken);
