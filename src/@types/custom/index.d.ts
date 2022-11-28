@@ -1,7 +1,7 @@
 import { json } from "stream/consumers";
 
 export type UserModel = {
-  id: number;
+  id: string;
   email: string;
   username: string;
   password?: string;
@@ -23,7 +23,7 @@ export type UserModel = {
 };
 
 export type PostModel = {
-  userId: number;
+  userId: string;
   user?: UserModel;
   title: string;
   content: string;
@@ -34,7 +34,7 @@ export type PostModel = {
 };
 
 export type SessionModel = {
-  userId: number;
+  userId: string;
   user?: UserModel;
   title: string;
   content: string;
@@ -48,13 +48,13 @@ export type SessionModel = {
 };
 
 export type FollowModel = {
-  followerId: number;
-  followingId: number;
+  followerId: string;
+  followingId: string;
   id: string;
 };
 
 export type PostInnerJoinUser = {
-  userId: number;
+  userId: string;
   user?: UserModel;
   title: string;
   content: string;
@@ -103,7 +103,7 @@ export type RefreshTokenSchema = {
 };
 
 export type PostSchema = {
-  userId: number;
+  userId: string;
   title: string;
   content: string;
   language: string;
@@ -112,9 +112,9 @@ export type PostSchema = {
 };
 
 export type SessionSchema = {
-  id: number;
+  id: string;
   user: UserModel;
-  userId: number;
+  userId: string;
   title: string;
   content: string;
   language: string;
@@ -123,7 +123,7 @@ export type SessionSchema = {
   expirationDate?: Date;
   sessionTimeout?: Date;
   currentUserCount: number;
-  currentUserList:  string;
+  currentUserList: string;
 };
 
 export type GetSimilarPostsSchema = {
@@ -138,7 +138,7 @@ export type EditUserSchema = {
 };
 
 export type SessionSchema = {
-  userId: number;
+  userId: string;
   title: string;
   content: string;
   language: string;
@@ -157,7 +157,7 @@ export type CaptchaValidation = {
 };
 
 export type AuthPayload = {
-  id: number;
+  id: string;
 };
 
 export type SortOrder = 'asc' | 'desc';

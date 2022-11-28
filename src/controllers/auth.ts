@@ -380,7 +380,7 @@ const verifyEmail = async (req: Request, res: Response) => {
   try {
     const splitURL = req.path.split("/");
 
-    const id = parseInt(splitURL[2]);
+    const id = splitURL[2];
     const token = splitURL[3];
 
     const user = await User.findUnique({
@@ -563,7 +563,7 @@ const changePassword = async (req: Request, res: Response) => {
     }
 
     // Find user using userId pulled from Redis
-    const user = await User.findUnique({ where: { id: parseInt(userId) } });
+    const user = await User.findUnique({ where: { id: userId } });
     if (!user) {
       res.status(400).json({ error: 'User no longer exists' });
       return;
@@ -967,7 +967,7 @@ const unfollowUser = async (req: Request, res: Response) => {
 
 const getUserById = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
 
     const user = (await User.findUnique({
       where: { id },
@@ -994,7 +994,7 @@ const getUserById = async (req: Request, res: Response) => {
 const getSession = async (req: Request, res: Response) => {
   try {
     const session = await Post.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: req.params.id },
       include: {
         user: {
           select: {
@@ -1049,7 +1049,7 @@ const saveSession = async (req: Request, res: Response) => {
     const { content } = req.body;
 
     const session = await Post.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: req.params.id },
       data: {
         content,
       },
