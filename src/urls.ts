@@ -25,6 +25,7 @@ export default {
     unfollow: '/unfollow/:username',
     specificSession: '/session/:id',
     createSession: '/new/session',
+    saveSession: '/session/:id/save',
   },
   post: {
     path: '/post',

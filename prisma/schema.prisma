@@ -29,7 +29,6 @@ model User {
   isTempUser     Boolean   @default(false)
 
   @@index([email])
-  Session Session[]
 }
 
 model Follows {
@@ -53,21 +52,9 @@ model Post {
   privacy        String    @db.VarChar(7)
   createdAt      DateTime  @default(now())
   expirationDate DateTime?
+  sessionTimeout   DateTime?
+  currentUserCount Int?
+  currentUserList  Json?
 
   @@index([title])
-}
-
-model Session {
-  id               Int       @id @default(autoincrement())
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId           Int
-  title            String    @default("Untitled") @db.VarChar(100)
-  content          String    @db.VarChar(40000)
-  language         String    @default("plaintext") @db.VarChar(50)
-  privacy          String    @db.VarChar(7)
-  createdAt        DateTime  @default(now())
-  expirationDate   DateTime?
-  sessionTimeout   DateTime?
-  currentUserCount Int
-  currentUserList  Json?
 }

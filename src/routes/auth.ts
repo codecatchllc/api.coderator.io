@@ -306,6 +306,8 @@ router.get(urls.auth.specificSession, controller.getSession);
 
 router.get(urls.auth.createSession, controller.createSession);
 
+router.post(urls.auth.saveSession, controller.saveSession);
+
 // Authentication
 router.use(authenticateWithToken);
 

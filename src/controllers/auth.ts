@@ -1010,7 +1010,9 @@ const getSession = async (req: Request, res: Response) => {
     });
     if (session) {
       res.json(session);
+      console.log(session);
     } else {
+      console.log(session);
       res.status(404).json({ error: 'Resource not found' });
     }
   } catch (error) {
@@ -1042,6 +1044,25 @@ const createSession = async (req: Request, res: Response) => {
   }
 };
 
+const saveSession = async (req: Request, res: Response) => {
+  try {
+    const { content } = req.body;
+
+    const session = await Post.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        content,
+      },
+    });
+
+    res.json({ session });
+  } catch (error) {
+    console.error('saveSession() error: ', error);
+    res.status(500).json({
+      error: 'There was an error saving this session, please try again later',
+    });
+  }
+};
 
 export default {
   login,
@@ -1063,4 +1084,5 @@ export default {
   unfollowUser,
   getSession,
   createSession,
+  saveSession,
 };
