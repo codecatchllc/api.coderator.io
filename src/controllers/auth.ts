@@ -1029,11 +1029,10 @@ const createSession = async (req: Request, res: Response) => {
       content: DEFAULT_CONTENT,
       language: DEFAULT_LANGUAGE,
       privacy: DEFAULT_PRIVACY,
-      userId: req.params.id || 1500,
+      userId: req.body.userId,
     };
-    console.log(req.params.id);
-
     const session = await Post.create({ data: newPost as PostSchema });
+    console.log(session);
     res.json({ session });
   } catch (error) {
     console.error('createSession() error: ', error);
