@@ -18,7 +18,7 @@ import { DEFAULT_LANGUAGE, DEFAULT_TITLE, NEWEST } from './../constants/index';
 const getPost = async (req: Request, res: Response) => {
   try {
     const post = await Post.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: req.params.id },
       include: {
         user: {
           select: {
@@ -75,7 +75,7 @@ const getPaginatedPosts = async (req: Request, res: Response) => {
       page = parsedPage - 1;
     }
 
-    const queryConditions: object[] = [{ userId: parseInt(req.user.id) }];
+    const queryConditions: object[] = [{ userId: req.user.id }];
     if (language !== ALL) {
       queryConditions.push({ language });
     }
@@ -148,7 +148,7 @@ const updatePost = async (req: Request, res: Response) => {
     };
 
     const { count } = await Post.updateMany({
-      where: { id: parseInt(req.params.id), userId: req.user.id },
+      where: { id: req.params.id, userId: req.user.id },
       data: updatedPost,
     });
 
@@ -169,7 +169,7 @@ const updatePost = async (req: Request, res: Response) => {
 
 const deletePost = async (req: Request, res: Response) => {
   try {
-    const postId = parseInt(req.params.id);
+    const postId = req.params.id;
 
     const post = await Post.findUnique({
       where: { id: postId },
@@ -242,7 +242,7 @@ const getSimilarPosts = async (req: Request, res: Response) => {
         public."Post" as p
         INNER JOIN public."User" as u
           ON p."userId" = u.id
-      WHERE p.id != ${parseInt(req.params.id)}
+      WHERE p.id != ${req.params.id}
         AND p.privacy = 'public'
         AND p.language = ${language}
       ORDER BY random()
@@ -326,7 +326,7 @@ const getRecentSessions = async (_: Request, res: Response) => {
         },
       },
     });
-    res.json({posts});
+    res.json({ posts });
   } catch (error) {
     console.log(error);
     res.status(500).json({
