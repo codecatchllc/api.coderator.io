@@ -96,11 +96,7 @@ io.on('connection', (socket) => {
             .catch((err) => {
                 console.log(err);
             });
-    });
 
-    socket.once(ACTIONS.SYNC_CODE, (code, roomId) => {
-        io.to(roomId).emit(ACTIONS.CODE_CHANGE, { code });
-        console.log("Syncing: ", code, "to room: ", roomId);
     });
 
     socket.on(ACTIONS.JOIN, ({ socketId, username }) => {
