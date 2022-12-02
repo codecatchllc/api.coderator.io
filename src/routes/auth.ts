@@ -308,6 +308,8 @@ router.post(urls.auth.createSession, controller.createSession);
 
 router.post(urls.auth.saveSession, controller.saveSession);
 
+router.patch(urls.auth.editSession, controller.editSession);
+
 // Authentication
 router.use(authenticateWithToken);
 

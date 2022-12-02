@@ -1063,6 +1063,30 @@ const saveSession = async (req: Request, res: Response) => {
   }
 };
 
+//write a route to edit a session. include title, language and privacy
+
+const editSession = async (req: Request, res: Response) => {
+
+  try {
+    const { sessionId, title, language, privacy } = req.body;
+    const session = await Post.update({
+      where: { id: sessionId },
+      data: {
+        title,
+        language,
+        privacy,
+      },
+    });
+    res.json( {"sessionId": session.id} );
+  } catch (error) {
+    console.error('editSession() error: ', error);
+    res.status(500).json({
+      error: 'There was an error editing this session, please try again later',
+    });
+  }
+};
+
+
 export default {
   login,
   authenticateWithOAuth,
@@ -1084,4 +1108,5 @@ export default {
   getSession,
   createSession,
   saveSession,
+  editSession,
 };
