@@ -26,6 +26,7 @@ export default {
     specificSession: '/session/:id',
     createSession: '/new/session',
     saveSession: '/session/:id/save',
+    editSession: '/session/edit',
   },
   post: {
     path: '/post',
