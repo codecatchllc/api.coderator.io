@@ -98,22 +98,18 @@ io.on('connection', (socket) => {
         );
     });
 
-    socket.on(ACTIONS.CODE_CHANGE, (roomId, code) => {
-
+    socket.on(ACTIONS.CODE_CHANGE, (roomId, code, rawValue) => {
         socket.broadcast.to(roomId).emit(ACTIONS.CODE_CHANGE, code);
-        console.log(code, " ", roomId);
-
-        const content = code;
-
+            
         axios.
             post(`http://localhost:5000/api/v1/auth/session/${roomId}/save`, {
-                content,
+                rawValue,
             })
             .then((res) => {
-                console.log("Saved code to database");
-                console.log(res.data);
-            }
-            )
+                if(res) {
+                    console.log("Saved code to database");
+                }
+            })
             .catch((err) => {
                 console.log(err);
             });
@@ -123,7 +119,7 @@ io.on('connection', (socket) => {
     socket.on(ACTIONS.SELECTION, function (data) {       //Content Select Or Cursor Change Event
             data.color = users[socket.id].color
             data.user = users[socket.id].user
-            console.log('Curosor ', data.user, ' has moved.');
+            console.log('Cursor ', data.user, ' has moved.');
             socket.broadcast.to(users[socket.id].room).emit(ACTIONS.SELECTION, data) 
     }); 
 

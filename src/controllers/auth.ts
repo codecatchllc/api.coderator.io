@@ -1045,7 +1045,7 @@ const createSession = async (req: Request, res: Response) => {
 
 const saveSession = async (req: Request, res: Response) => {
   try {
-    const { content } = req.body;
+    const content = req.body.rawValue;
 
     const session = await Post.update({
       where: { id: req.params.id },
@@ -1063,7 +1063,7 @@ const saveSession = async (req: Request, res: Response) => {
   }
 };
 
-//write a route to edit a session. include title, language and privacy
+//route to edit a session. include title, language and privacy
 
 const editSession = async (req: Request, res: Response) => {
 
