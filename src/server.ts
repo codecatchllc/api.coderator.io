@@ -130,17 +130,19 @@ io.on('connection', (socket) => {
     }); 
 
     socket.on('disconnect', () => {
-        console.log('User Disconnected: ', users[socket.id].user);
-        const roomId = users[socket.id].room;
+        if (users[socket.id]){
+            console.log('User Disconnected: ', users[socket.id].user);
+            const roomId = users[socket.id].room;
         
-        conId[roomId].currentUsers--;
-        socket.broadcast.to(roomId).emit(ACTIONS.EXIT, {
-            socketId: socket.id,
-            user: users[socket.id].user,
-        });
+            conId[roomId].currentUsers--;
+            socket.broadcast.to(roomId).emit(ACTIONS.EXIT, {
+                socketId: socket.id,
+                user: users[socket.id].user,
+            });
     
         delete userSocketMap[socket.id];
         //socket.leave();
+        }
     });
 
     return () => {
