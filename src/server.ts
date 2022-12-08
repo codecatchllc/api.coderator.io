@@ -35,10 +35,12 @@ const server = createServer(app);
 // ---- Socket Server for Session Syncronization ----
 let conId = 1;
 const colors = [
-    '#DDFFAA',
-    '#95E0C8',
-    '#E18060',
-    '#FFCBA4'
+    '#DDFFAA', // Dark Green
+    '#9555c8', // Purple
+    '#611700', // Red
+    '#453832', // Brown
+    '#f479a4', // Pink
+    '#29285f', // Dark Blue
 ];
 const users = {};
 
@@ -76,7 +78,7 @@ io.on('connection', (socket) => {
         // Setting up local data for user
         users[socket.id] = {}
         users[socket.id].user = username;
-        users[socket.id].color= colors[conId % colors.length];
+        users[socket.id].color= colors[Math.abs(conId % colors.length)];
         users[socket.id].room = roomId;
         conId++;
 
@@ -133,6 +135,7 @@ io.on('connection', (socket) => {
             });
         });
         delete userSocketMap[socket.id];
+        conId--;
         //socket.leave();
     });
 
