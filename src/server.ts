@@ -33,7 +33,7 @@ app.listen(config.PORT, () => {
 const server = createServer(app);
 
 // ---- Socket Server for Session Syncronization ----
-let conId = 1;
+const conId = {};
 const colors = [
     '#DDFFAA', // Dark Green
     '#9555c8', // Purple
@@ -76,11 +76,15 @@ io.on('connection', (socket) => {
         // console.log("Socket Map: ", userSocketMap);
 
         // Setting up local data for user
-        users[socket.id] = {}
+        if (!conId[roomId]){
+            conId[roomId] = {currentUsers: 1};
+        } else{
+            conId[roomId].currentUsers++;
+        }
+        users[socket.id] = {};
         users[socket.id].user = username;
-        users[socket.id].color= colors[Math.abs(conId % colors.length)];
+        users[socket.id].color= colors[Math.abs(conId[roomId].currentUsers % colors.length)];
         users[socket.id].room = roomId;
-        conId++;
 
         // Joining the room
         socket.join(roomId);
@@ -126,16 +130,16 @@ io.on('connection', (socket) => {
     }); 
 
     socket.on('disconnect', () => {
-        console.log('User Disconnected');
-        const rooms = [...socket.rooms];
-        rooms.forEach((roomId) => {
-            socket.in(roomId).emit(ACTIONS.EXIT, {
-                socketId: socket.id,
-                username: users[socket.id].user,
-            });
+        console.log('User Disconnected: ', users[socket.id].user);
+        const roomId = users[socket.id].room;
+        
+        conId[roomId].currentUsers--;
+        socket.broadcast.to(roomId).emit(ACTIONS.EXIT, {
+            socketId: socket.id,
+            user: users[socket.id].user,
         });
+    
         delete userSocketMap[socket.id];
-        conId--;
         //socket.leave();
     });
 
