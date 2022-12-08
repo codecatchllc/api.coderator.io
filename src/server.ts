@@ -127,13 +127,13 @@ io.on('connection', (socket) => {
             socket.broadcast.to(users[socket.id].room).emit(ACTIONS.SELECTION, data) 
     }); 
 
-    socket.once('disconnect', () => {
+    socket.on('disconnect', () => {
         console.log('User Disconnected');
         const rooms = [...socket.rooms];
         rooms.forEach((roomId) => {
-            socket.in(roomId).emit(ACTIONS.DISCONNECTED, {
+            socket.in(roomId).emit(ACTIONS.EXIT, {
                 socketId: socket.id,
-                username: userSocketMap[socket.id],
+                username: users[socket.id].user,
             });
         });
         delete userSocketMap[socket.id];

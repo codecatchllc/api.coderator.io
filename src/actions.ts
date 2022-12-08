@@ -8,6 +8,7 @@ const ACTIONS = {
     SELECTION: 'selection',
     CONNECTED: 'connected',
     USERDATA: 'userdata',
+    EXIT: 'exit',
 };
 
 export default ACTIONS
