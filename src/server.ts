@@ -32,6 +32,16 @@ app.listen(config.PORT, () => {
 
 const server = createServer(app);
 
+// ---- Socket Server for Session Syncronization ----
+let conId = 1;
+const colors = [
+    '#DDFFAA',
+    '#95E0C8',
+    '#E18060',
+    '#FFCBA4'
+];
+const users = {};
+
 const io = new Server(server, {
     cors: {
         origin: `${config.PROTOCOL}://${config.CLIENT_URL}`,
@@ -60,8 +70,15 @@ io.on('connection', (socket) => {
 
     socket.on(ACTIONS.JOIN, (roomId, username) => {
         userSocketMap[socket.id] = { username, roomId };
-        // console.log('User: ', username, ' with socket ', socket.id, 'joined', roomId);
-        console.log("Socket Map: ", userSocketMap);
+        console.log('ACTIONS.JOIN: User: ', username, ' with socket ', socket.id, 'joined', roomId);
+        // console.log("Socket Map: ", userSocketMap);
+
+        // Setting up local data for user
+        users[socket.id] = {}
+        users[socket.id].user = username;
+        users[socket.id].color= colors[conId % colors.length];
+        users[socket.id].room = roomId;
+        conId++;
 
         // Joining the room
         socket.join(roomId);
@@ -69,6 +86,10 @@ io.on('connection', (socket) => {
         // Getting all the clients in the room
         const clients = getAllConnectedClients(roomId);
         console.log("Clients: ", clients);
+
+        // Emitting user data
+        socket.broadcast.to(roomId).emit(ACTIONS.CONNECTED, {user : users[socket.id].user, color : users[socket.id].color});
+        io.to(roomId).emit(ACTIONS.USERDATA, Object.values(users));
 
         io.to(roomId).emit(ACTIONS.JOINED,
             clients,
@@ -79,7 +100,7 @@ io.on('connection', (socket) => {
 
     socket.on(ACTIONS.CODE_CHANGE, (roomId, code) => {
 
-        io.to(roomId).emit(ACTIONS.CODE_CHANGE, code);
+        socket.broadcast.to(roomId).emit(ACTIONS.CODE_CHANGE, code);
         console.log(code, " ", roomId);
 
         const content = code;
@@ -99,9 +120,12 @@ io.on('connection', (socket) => {
 
     });
 
-    socket.on(ACTIONS.JOIN, ({ socketId, username }) => {
-        io.to(socketId).emit(ACTIONS.JOIN, { username });
-    });
+    socket.on(ACTIONS.SELECTION, function (data) {       //Content Select Or Cursor Change Event
+            data.color = users[socket.id].color
+            data.user = users[socket.id].user
+            console.log('Curosor ', data.user, ' has moved.');
+            socket.broadcast.to(users[socket.id].room).emit(ACTIONS.SELECTION, data) 
+    }); 
 
     socket.once('disconnect', () => {
         console.log('User Disconnected');

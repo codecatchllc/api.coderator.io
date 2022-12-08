@@ -5,6 +5,9 @@ const ACTIONS = {
     CODE_CHANGE: 'code-change',
     SYNC_CODE: 'sync-code',
     LEAVE: 'disconnect',
+    SELECTION: 'selection',
+    CONNECTED: 'connected',
+    USERDATA: 'userdata',
 };
 
 export default ACTIONS
