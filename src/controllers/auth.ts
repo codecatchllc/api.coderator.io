@@ -993,6 +993,21 @@ const getUserById = async (req: Request, res: Response) => {
 
 const getSession = async (req: Request, res: Response) => {
   try {
+
+    if(req.params.id.length > 36) {
+      res.status(404).json({
+        error: 'Session could not be found',
+      });
+      return;
+    }
+
+    if(req.params.id.length < 36) {
+      res.status(404).json({
+        error: 'Session could not be found',
+      });
+      return;
+    }
+
     const session = await Post.findUnique({
       where: { id: req.params.id },
       include: {
@@ -1008,13 +1023,16 @@ const getSession = async (req: Request, res: Response) => {
         },
       },
     });
-    if (session) {
-      res.json(session);
-      console.log(session);
-    } else {
-      console.log(session);
-      res.status(404).json({ error: 'Resource not found' });
+
+    if (!session) {
+      res.status(404).json({
+        error: 'Session could not be found',
+      });
+      return;
     }
+
+    res.json( session );
+
   } catch (error) {
     res.status(500).json({
       error: 'There was an error retrieving this session, please try again later',
