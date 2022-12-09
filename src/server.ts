@@ -108,7 +108,7 @@ io.on('connection', (socket) => {
         socket.broadcast.to(roomId).emit(ACTIONS.CODE_CHANGE, code);
             
         axios.
-            post(`http://localhost:5000/api/v1/auth/session/${roomId}/save`, {
+            post(`${process.env.API_URL}/auth/session/${roomId}/save`, {
                 rawValue,
             })
             .then((res) => {
