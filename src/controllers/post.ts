@@ -10,7 +10,7 @@ import {
   LANGUAGE_OPTIONS,
   MAX_PSQL_INT,
   OLDEST,
-  POSTS_PER_PAGE
+  POSTS_PER_PAGE,
 } from '../constants';
 import prisma, { Post } from '../models/init';
 import { DEFAULT_LANGUAGE, DEFAULT_TITLE, NEWEST } from './../constants/index';
@@ -305,14 +305,17 @@ const createPost = async (req: Request, res: Response) => {
 
 const getRecentSessions = async (_: Request, res: Response) => {
   try {
-
     const posts = await Post.findMany({
       take: 6,
+      where: {
+        privacy: 'public'
+      },
       orderBy: [
         {
           createdAt: 'desc',
         },
       ],
+
       include: {
         user: {
           select: {
@@ -326,6 +329,7 @@ const getRecentSessions = async (_: Request, res: Response) => {
         },
       },
     });
+
     res.json({ posts });
   } catch (error) {
     console.log(error);

@@ -49,7 +49,7 @@ model Post {
   title          String    @default("Untitled") @db.VarChar(100)
   content        String    @db.VarChar(40000)
   language       String    @default("plaintext") @db.VarChar(50)
-  privacy        String    @db.VarChar(7)
+  privacy        String    @db.VarChar(8)
   createdAt      DateTime  @default(now())
   expirationDate DateTime?
   sessionTimeout   DateTime?
