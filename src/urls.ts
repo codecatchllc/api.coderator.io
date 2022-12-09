@@ -25,6 +25,7 @@ export default {
     unfollow: '/unfollow/:username',
     specificSession: '/session/:id',
     createSession: '/new/session',
+    createPrivateSession: '/new/private/session',
     saveSession: '/session/:id/save',
     editSession: '/session/edit',
   },

@@ -306,6 +306,8 @@ router.get(urls.auth.specificSession, controller.getSession);
 
 router.post(urls.auth.createSession, controller.createSession);
 
+router.post(urls.auth.createPrivateSession, controller.createPrivateSession);
+
 router.post(urls.auth.saveSession, controller.saveSession);
 
 router.patch(urls.auth.editSession, controller.editSession);

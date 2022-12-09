@@ -173,6 +173,13 @@ const deletePost = async (req: Request, res: Response) => {
 
     const post = await Post.findUnique({
       where: { id: postId },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
     });
 
     if (!post) {
@@ -190,6 +197,8 @@ const deletePost = async (req: Request, res: Response) => {
       return;
     }
 
+    const username = post?.user.username;
+
     const deletedPost = await Post.delete({
       where: { id: postId },
     });
@@ -200,7 +209,7 @@ const deletePost = async (req: Request, res: Response) => {
       return;
     }
 
-    res.status(204).send();
+    res.status(200).json({username: username, status: 'success'})
   } catch (error) {
     res.status(500).json({
       error: 'There was an error deleting your post, please try again later',

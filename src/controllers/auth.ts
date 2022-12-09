@@ -34,6 +34,7 @@ import {
   DEFAULT_PRIVACY,
   DEFAULT_TITLE,
   EMAIL_REGEX,
+  PRIVATE,
   REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_LIFESPAN,
 } from './../constants/index';
@@ -1061,6 +1062,27 @@ const createSession = async (req: Request, res: Response) => {
   }
 };
 
+const createPrivateSession = async (req: Request, res: Response) => {
+  try {
+    const newPost = {
+      title: DEFAULT_TITLE,
+      content: DEFAULT_CONTENT,
+      language: DEFAULT_LANGUAGE,
+      privacy: PRIVATE,
+      userId: req.body.userId,
+    };
+    const session = await Post.create({ data: newPost as PostSchema });
+    console.log(session);
+    res.json({ session });
+  } catch (error) {
+    console.error('createSession() error: ', error);
+    console.log(error);
+    res.status(500).json({
+      error: 'There was an error creating this post, please try again later',
+    });
+  }
+};
+
 const saveSession = async (req: Request, res: Response) => {
   try {
     const content = req.body.rawValue;
@@ -1125,6 +1147,7 @@ export default {
   unfollowUser,
   getSession,
   createSession,
+  createPrivateSession,
   saveSession,
   editSession,
 };
