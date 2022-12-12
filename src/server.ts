@@ -35,12 +35,10 @@ const server = createServer(app);
 // ---- Socket Server for Session Syncronization ----
 const conId = {};
 const colors = [
-    '#DDFFAA', // Dark Green
-    '#9555c8', // Purple
-    '#611700', // Red
-    '#453832', // Brown
-    '#f479a4', // Pink
-    '#29285f', // Dark Blue
+    '#9555c8', // Purple: Good occupancy need to turn down
+    '#611700', // Red: Good
+    '#453832', // Brown: Good
+    '#29285f', // Dark Blue: Good
 ];
 const users = {};
 
@@ -51,7 +49,6 @@ const io = new Server(server, {
     }
 });
 
-const userSocketMap = {};
 function getAllConnectedClients(roomId: string) {
     // Map
     return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
@@ -61,17 +58,66 @@ function getAllConnectedClients(roomId: string) {
             // console.log("USERNAME: ", userSocketMap[socketId].username);
             return {
                 socketId,
-                username: userSocketMap[socketId].username,
+                username: users[socketId].user,
             };
         }
     );
+}
+
+function checkCurrentClinets(roomId, username, sock){
+    let bool = false;
+    // return the old socket to disconnect 
+    const sockArr = Array.from(io.sockets.adapter.rooms.get(roomId) || [])
+
+    sockArr.forEach( (i) => {
+        // console.log('comparing sock arr: ', i, ' to current: ', sock);
+        if (i  != sock){
+            // console.log('Comparing Username: ', username, ' ; ', users[i].user);
+            if (username.toString() == users[i].user.toString()){
+                // console.log('FOUND MATCHING USERNAMES');
+                bool = users[i].user;
+                return users[i].user;
+            }
+        }
+    });
+
+    return bool;
+}
+
+function checkDuplicateClinets(roomId, username, sock){
+    let bool = 0;
+    // return number of occurances of username
+    const sockArr = Array.from(io.sockets.adapter.rooms.get(roomId) || [])
+
+    sockArr.forEach( (i) => {
+        // console.log('comparing sock arr: ', i, ' to current: ', sock);
+        if (i  != sock){
+            // console.log('Comparing Username: ', username, ' ; ', users[i].user);
+            if (username.toString() == users[i].user.toString()){
+                // console.log('FOUND MATCHING USERNAMES');
+                bool++;
+            }
+        }
+    });
+
+    return bool;
 }
 
 io.on('connection', (socket) => {
     console.log('socket connected', socket.id);
 
     socket.on(ACTIONS.JOIN, (roomId, username) => {
-        userSocketMap[socket.id] = { username, roomId };
+        // Checking if the user is already in room 
+        const check = checkCurrentClinets(roomId, username, socket.id);
+        if (check){
+            socket.broadcast.to(roomId).emit(ACTIONS.EXIT, {
+                user: username,
+            });
+            delete users[socket.id];
+        }
+
+
+        // Creating the user
         console.log('ACTIONS.JOIN: User: ', username, ' with socket ', socket.id, 'joined', roomId);
         // console.log("Socket Map: ", userSocketMap);
 
@@ -125,22 +171,27 @@ io.on('connection', (socket) => {
     socket.on(ACTIONS.SELECTION, function (data) {       //Content Select Or Cursor Change Event
             data.color = users[socket.id].color
             data.user = users[socket.id].user
-            console.log('Cursor ', data.user, ' has moved.');
+            // console.log('Cursor ', data.user, ' has moved.');
             socket.broadcast.to(users[socket.id].room).emit(ACTIONS.SELECTION, data) 
     }); 
 
     socket.on('disconnect', () => {
         if (users[socket.id]){
+            const username = users[socket.id].user;
             console.log('User Disconnected: ', users[socket.id].user);
             const roomId = users[socket.id].room;
-        
-            conId[roomId].currentUsers--;
-            socket.broadcast.to(roomId).emit(ACTIONS.EXIT, {
-                socketId: socket.id,
-                user: users[socket.id].user,
+            
+            // Checking for duplicate users in room
+            const userCount = checkDuplicateClinets(roomId, username, socket.id);
+            if (userCount == 0){
+                conId[roomId].currentUsers--;
+                socket.broadcast.to(roomId).emit(ACTIONS.EXIT, {
+                    socketId: socket.id,
+                    user: users[socket.id].user,
             });
+            }
     
-        delete userSocketMap[socket.id];
+        delete users[socket.id];
         //socket.leave();
         }
     });
