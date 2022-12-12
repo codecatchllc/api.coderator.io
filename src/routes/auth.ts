@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import controller from '../controllers/auth';
-import { authenticateWithToken } from '../middlewares/auth';
+import { authenticateWithToken, getRequestUser } from '../middlewares/auth';
 import { requireSchema } from '../middlewares/validate';
 import {
     authenticateWithOAuthSchema,
@@ -427,7 +427,7 @@ router.get(urls.auth.me, authenticateWithToken, controller.me);
 
 router.get(
     urls.auth.username,
-    authenticateWithToken,
+    getRequestUser,
     controller.getUserByUsername
 );
 
