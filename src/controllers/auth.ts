@@ -261,8 +261,8 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
       delete user.password;
 
       const html = `
-      <h4>Registration Completed!</h4>
-      <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on Coderator by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a> or <a href="${config.PROTOCOL}://${config.CLIENT_URL}/search">searching all posts</a>.</p>
+      <h4>Coderator: Registration Completed!</h4>
+      <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>.</p>
       <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
       `;
 
@@ -444,8 +444,8 @@ const verifyEmail = async (req: Request, res: Response) => {
     });
 
     const html = `
-    <h4>Registration Completed!</h4>
-    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on Coderator by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a>.</p>
+    <h4>Coderator: Registration Completed!</h4>
+    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>.</p>
     <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
     `;
 
