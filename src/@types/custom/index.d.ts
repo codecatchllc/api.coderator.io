@@ -1,5 +1,3 @@
-import { json } from "stream/consumers";
-
 export type UserModel = {
   id: string;
   email: string;
