@@ -312,6 +312,10 @@ router.post(urls.auth.saveSession, controller.saveSession);
 
 router.patch(urls.auth.editSession, controller.editSession);
 
+router.get(urls.auth.getInitialSearch, controller.getInitialSearch);
+
+router.get(urls.auth.getSearchedPosts, controller.getSearchedPosts);
+
 // Authentication
 router.use(authenticateWithToken);
 

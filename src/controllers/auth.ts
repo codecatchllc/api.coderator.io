@@ -8,7 +8,7 @@ import {
   EMAIL_VERIFICATION_PREFIX,
   FORGOT_PASSWORD_PREFIX,
 } from '../constants/redis';
-import { Follow, Post, User } from '../models/init';
+import prisma, { Follow, Post, User } from '../models/init';
 import config from '../utils/config';
 import { genAccessToken } from '../utils/genAccessToken';
 import { genRefreshToken } from '../utils/genRefreshToken';
@@ -26,15 +26,22 @@ import {
   RegisterSchema,
   UserModel,
   PostSchema,
+  PostInnerJoinUser,
 } from './../@types/custom/index.d';
 import {
   ACCESS_TOKEN_LIFESPAN,
+  ALL,
   DEFAULT_CONTENT,
   DEFAULT_LANGUAGE,
   DEFAULT_PRIVACY,
   DEFAULT_TITLE,
   EMAIL_REGEX,
+  LANGUAGE_OPTIONS,
+  MAX_PSQL_INT,
+  OLDEST,
+  POSTS_PER_PAGE,
   PRIVATE,
+  PUBLIC,
   REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_LIFESPAN,
 } from './../constants/index';
@@ -1126,6 +1133,135 @@ const editSession = async (req: Request, res: Response) => {
   }
 };
 
+const getInitialSearch = async (_: Request, res: Response) => {
+  try {
+    const postLimit = 8;
+
+    // get explore posts
+    const explorePostsRows: PostInnerJoinUser[] = await prisma.$queryRaw`
+      SELECT
+        p.id, p."userId", p.title, p.content, p."createdAt", p.language, p.privacy,
+        u.username
+      FROM
+        public."Post" as p
+        INNER JOIN public."User" as u
+          ON p."userId" = u.id
+      WHERE p.privacy = 'public'
+      ORDER BY random()
+      LIMIT ${postLimit}
+    `;
+
+    const explorePosts = explorePostsRows.map(post => {
+      const { username, ...rest } = post;
+      return {
+        ...rest,
+        user: {
+          username,
+        },
+      };
+    });
+    res.json({
+      explorePosts,
+    });
+  } catch (error) {
+    console.error('getInitialSearch() error: ', error);
+    res.status(500).json({
+      error:
+        'There was a server-side issue while fetching initial search posts',
+    });
+  }
+};
+
+
+const getSearchedPosts = async (req: Request, res: Response) => {
+  try {
+    let orderBy:
+      | Prisma.Enumerable<Prisma.PostOrderByWithRelationAndSearchRelevanceInput>
+      | undefined;
+    if (req.query.sort === OLDEST) {
+      orderBy = [
+        {
+          createdAt: 'asc',
+        },
+      ];
+    } else {
+      orderBy = [
+        {
+          createdAt: 'desc',
+        },
+      ];
+    }
+
+    let language = ALL;
+    if (
+      req.query.language &&
+      LANGUAGE_OPTIONS.includes(req.query.language as string)
+    ) {
+      language = req.query.language as string;
+    }
+
+    let page = 0;
+    const parsedPage = Math.min(
+      Math.abs(parseInt(req.query.page as string)),
+      MAX_PSQL_INT
+    );
+    if (
+      req.query.page &&
+      typeof parsedPage === 'number' &&
+      !isNaN(parsedPage)
+    ) {
+      // Subtract 1 since page is 0-indexed
+      page = parsedPage - 1;
+    }
+
+    const queryConditions: object[] = [{ privacy: PUBLIC }];
+    if (language !== ALL) {
+      queryConditions.push({ language });
+    }
+
+    const search = (req.query.query as string) || '';
+    if (search) {
+      queryConditions.push({
+        title: {
+          search: search.split(' ').join(' | '),
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    const totalPosts = await Post.count({
+      where: { AND: queryConditions },
+    });
+
+    const posts = await Post.findMany({
+      skip: page * POSTS_PER_PAGE,
+      take: POSTS_PER_PAGE,
+      where: {
+        AND: queryConditions,
+      },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
+      orderBy,
+    });
+
+    res.json({
+      pages: Math.ceil(totalPosts / POSTS_PER_PAGE),
+      total: totalPosts,
+      posts,
+    });
+  } catch (error) {
+    console.error('getSearchedPosts() error: ', error);
+    res.status(500).json({
+      error: 'There was a server-side issue while searching for posts',
+    });
+  }
+};
+
 
 export default {
   login,
@@ -1150,4 +1286,6 @@ export default {
   createPrivateSession,
   saveSession,
   editSession,
+  getInitialSearch,
+  getSearchedPosts,
 };
