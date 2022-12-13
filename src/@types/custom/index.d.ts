@@ -20,6 +20,19 @@ export type UserModel = {
   numPosts?: number;
 };
 
+export type PostInnerJoinUser = {
+  id: string;
+  userId: string;
+  user?: UserModel;
+  title: string;
+  content: string;
+  language: string;
+  privacy: string;
+  createdAt: Date;
+  expirationDate: Date | null;
+  username: string;
+};
+
 export type PostModel = {
   userId: string;
   user?: UserModel;
