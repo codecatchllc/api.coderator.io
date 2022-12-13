@@ -10,7 +10,7 @@ import {
   LANGUAGE_OPTIONS,
   MAX_PSQL_INT,
   OLDEST,
-  POSTS_PER_PAGE
+  POSTS_PER_PAGE,
 } from '../constants';
 import prisma, { Post } from '../models/init';
 import { DEFAULT_LANGUAGE, DEFAULT_TITLE, NEWEST } from './../constants/index';
@@ -18,7 +18,7 @@ import { DEFAULT_LANGUAGE, DEFAULT_TITLE, NEWEST } from './../constants/index';
 const getPost = async (req: Request, res: Response) => {
   try {
     const post = await Post.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: req.params.id },
       include: {
         user: {
           select: {
@@ -75,7 +75,7 @@ const getPaginatedPosts = async (req: Request, res: Response) => {
       page = parsedPage - 1;
     }
 
-    const queryConditions: object[] = [{ userId: parseInt(req.user.id) }];
+    const queryConditions: object[] = [{ userId: req.user.id }];
     if (language !== ALL) {
       queryConditions.push({ language });
     }
@@ -148,7 +148,7 @@ const updatePost = async (req: Request, res: Response) => {
     };
 
     const { count } = await Post.updateMany({
-      where: { id: parseInt(req.params.id), userId: req.user.id },
+      where: { id: req.params.id, userId: req.user.id },
       data: updatedPost,
     });
 
@@ -169,10 +169,17 @@ const updatePost = async (req: Request, res: Response) => {
 
 const deletePost = async (req: Request, res: Response) => {
   try {
-    const postId = parseInt(req.params.id);
+    const postId = req.params.id;
 
     const post = await Post.findUnique({
       where: { id: postId },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
     });
 
     if (!post) {
@@ -190,6 +197,8 @@ const deletePost = async (req: Request, res: Response) => {
       return;
     }
 
+    const username = post?.user.username;
+
     const deletedPost = await Post.delete({
       where: { id: postId },
     });
@@ -200,7 +209,7 @@ const deletePost = async (req: Request, res: Response) => {
       return;
     }
 
-    res.status(204).send();
+    res.status(200).json({username: username, status: 'success'})
   } catch (error) {
     res.status(500).json({
       error: 'There was an error deleting your post, please try again later',
@@ -242,7 +251,7 @@ const getSimilarPosts = async (req: Request, res: Response) => {
         public."Post" as p
         INNER JOIN public."User" as u
           ON p."userId" = u.id
-      WHERE p.id != ${parseInt(req.params.id)}
+      WHERE p.id != ${req.params.id}
         AND p.privacy = 'public'
         AND p.language = ${language}
       ORDER BY random()
@@ -303,6 +312,42 @@ const createPost = async (req: Request, res: Response) => {
   }
 };
 
+const getRecentSessions = async (_: Request, res: Response) => {
+  try {
+    const posts = await Post.findMany({
+      take: 6,
+      where: {
+        privacy: 'public'
+      },
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+      ],
+
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            createdAt: true,
+            lastLoginAt: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    res.json({ posts });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: 'There was an error retrieving recent posts, please try again later',
+    });
+  }
+};
+
 export default {
   getPost,
   getPaginatedPosts,
@@ -310,4 +355,5 @@ export default {
   deletePost,
   getSimilarPosts,
   createPost,
+  getRecentSessions,
 };

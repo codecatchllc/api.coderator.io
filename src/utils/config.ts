@@ -6,6 +6,7 @@ export default {
   PORT: parseInt(process.env.PORT as string, 10) || 5000,
   PROTOCOL: process.env.NODE_ENV === 'production' ? 'https' : 'http',
   CLIENT_URL: process.env.CLIENT_URL || 'localhost:3000',
+  API_URL: process.env.API_URL || 'http://localhost:5000/api/v1',
   DATABASE_URL: process.env.DATABASE_URL || undefined,
   REDIS_HOST: process.env.REDIS_HOST || '127.0.0.1',
   REDIS_PORT: parseInt(process.env.REDIS_PORT as string, 10) || 6379,

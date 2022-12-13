@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import controller from '../controllers/auth';
-import { authenticateWithToken } from '../middlewares/auth';
+import { authenticateWithToken, getRequestUser } from '../middlewares/auth';
 import { requireSchema } from '../middlewares/validate';
 import {
-  changePasswordSchema,
-  editUserSchema,
-  forgotPasswordSchema,
-  loginSchema,
-  registerSchema,
+    authenticateWithOAuthSchema,
+    changePasswordSchema,
+    editUserSchema,
+    forgotPasswordSchema,
+    loginSchema,
+    registerSchema,
 } from '../schemas/auth';
 import urls from '../urls';
 
@@ -49,6 +50,83 @@ router.post(urls.auth.login, requireSchema(loginSchema), controller.login);
 
 /** @swagger
  *
+ * tags:
+ *   name: Authentication
+ *   description: User authentication API
+ *
+ * /auth/verify/:id/:token:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Authenticate a user account
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The id of the user being verified.
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: A uuid token used in Redis to verify a user's identity.
+ *     responses:
+ *       200:
+ *         description: Successful verification, authenticated user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Bad request, invalid token parameter
+ *       404:
+ *         description: Bad request, user or token parameter not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(`${urls.auth.verify}/:id/:token`, controller.verifyEmail);
+
+/** @swagger
+ *
+ * /auth/oauth:
+ *   post:
+ *     tags: [Authentication]
+ *     summary: Register a new user account
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/authenticateWithOAuthSchema'
+ *     responses:
+ *       204:
+ *         description: Successful reset password link sent
+ *       400:
+ *         description: Bad request, registration failed
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post(
+    urls.auth.authenticateWithOAuth,
+    requireSchema(authenticateWithOAuthSchema),
+    controller.authenticateWithOAuth
+);
+
+/** @swagger
+ *
  * /auth/register:
  *   post:
  *     tags: [Authentication]
@@ -60,12 +138,8 @@ router.post(urls.auth.login, requireSchema(loginSchema), controller.login);
  *           schema:
  *             $ref: '#/components/schemas/registerSchema'
  *     responses:
- *       201:
- *         description: Successful registration, with user details
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
+ *       204:
+ *         description: Successful reset password link sent
  *       400:
  *         description: Bad request, registration failed
  *       500:
@@ -76,9 +150,9 @@ router.post(urls.auth.login, requireSchema(loginSchema), controller.login);
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  urls.auth.register,
-  requireSchema(registerSchema),
-  controller.register
+    urls.auth.register,
+    requireSchema(registerSchema),
+    controller.register
 );
 
 /** @swagger
@@ -106,9 +180,9 @@ router.post(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  urls.auth.forgotPassword,
-  requireSchema(forgotPasswordSchema),
-  controller.forgotPassword
+    urls.auth.forgotPassword,
+    requireSchema(forgotPasswordSchema),
+    controller.forgotPassword
 );
 
 /** @swagger
@@ -136,9 +210,9 @@ router.post(
  *               $ref: '#/components/schemas/Error'
  */
 router.post(
-  urls.auth.changePassword,
-  requireSchema(changePasswordSchema),
-  controller.changePassword
+    urls.auth.changePassword,
+    requireSchema(changePasswordSchema),
+    controller.changePassword
 );
 
 /** @swagger
@@ -157,7 +231,7 @@ router.post(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post(urls.auth.logout, controller.logout);
+router.post(urls.auth.logout, authenticateWithToken, controller.logout);
 
 /** @swagger
  *
@@ -187,8 +261,145 @@ router.post(urls.auth.logout, controller.logout);
  */
 router.post(urls.auth.token, controller.refreshToken);
 
+/** @swagger
+ *
+ * /auth/me:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Retrieve the currently authenticated user
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The username of the user to be queried
+ *     responses:
+ *       200:
+ *         description: The user associated with parameter :username
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Bad request, user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(urls.auth.username, controller.getUserByUsername);
+
+router.get(urls.auth.followers, controller.getFollowers);
+
+router.get(urls.auth.following, controller.getFollowing);
+
+router.get(urls.auth.id, controller.getUserById);
+
+router.get(urls.auth.specificSession, controller.getSession);
+
+router.post(urls.auth.createSession, controller.createSession);
+
+router.post(urls.auth.createPrivateSession, controller.createPrivateSession);
+
+router.post(urls.auth.saveSession, controller.saveSession);
+
+router.patch(urls.auth.editSession, controller.editSession);
+
+router.get(urls.auth.getInitialSearch, controller.getInitialSearch);
+
+router.get(urls.auth.getSearchedPosts, controller.getSearchedPosts);
+
 // Authentication
 router.use(authenticateWithToken);
+
+/** @swagger
+ *
+ * /auth/follow:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Follow a user
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The username of the user to be followed
+ *     responses:
+ *       200:
+ *         description: Success, user followed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/followUserResponseSchema'
+ *       404:
+ *         description: Bad request, user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       400:
+ *         description: Bad request, you cannot follow yourself or you are already following this user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(urls.auth.follow, controller.followUser);
+
+/** @swagger
+ *
+ * /auth/unfollow:
+ *   get:
+ *     tags: [Authentication]
+ *     summary: Unfollow a user
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The username of the user to be unfollowed
+ *     responses:
+ *       200:
+ *         description: Success, user unfollowed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Bad request, user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       400:
+ *         description: Bad request, you cannot unfollow yourself or you are already not following this user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Bad request, server-side error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get(urls.auth.unfollow, controller.unfollowUser);
 
 /** @swagger
  *
@@ -216,7 +427,13 @@ router.use(authenticateWithToken);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get(urls.auth.me, controller.me);
+router.get(urls.auth.me, authenticateWithToken, controller.me);
+
+router.get(
+    urls.auth.username,
+    getRequestUser,
+    controller.getUserByUsername
+);
 
 /** @swagger
  *
@@ -246,7 +463,11 @@ router.get(urls.auth.me, controller.me);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete(urls.auth.deleteaccount, controller.deleteaccount);
+router.delete(
+    urls.auth.deleteaccount,
+    authenticateWithToken,
+    controller.deleteaccount
+);
 
 /** @swagger
  *
@@ -277,9 +498,11 @@ router.delete(urls.auth.deleteaccount, controller.deleteaccount);
  *               $ref: '#/components/schemas/Error'
  */
 router.patch(
-  urls.auth.edit,
-  requireSchema(editUserSchema),
-  controller.editUser
+    urls.auth.edit,
+    authenticateWithToken,
+    requireSchema(editUserSchema),
+    controller.editUser
 );
+
 
 export default router;
