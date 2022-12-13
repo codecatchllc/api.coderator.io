@@ -12,7 +12,7 @@ generator client {
 }
 
 model User {
-  id             Int       @id @default(autoincrement())
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email          String    @unique @db.VarChar(255)
   password       String    @db.VarChar(255)
   username       String    @unique @db.VarChar(255)
@@ -29,45 +29,32 @@ model User {
   isTempUser     Boolean   @default(false)
 
   @@index([email])
-  Session Session[]
 }
 
 model Follows {
   id          String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   follower    User   @relation("follower", fields: [followerId], references: [id])
-  followerId  Int
+  followerId  String   @db.Uuid
   following   User   @relation("following", fields: [followingId], references: [id])
-  followingId Int
+  followingId String   @db.Uuid
 
   @@id([followerId, followingId])
   @@index([id], name: "id")
 }
 
 model Post {
-  id             Int       @id @default(autoincrement())
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId         Int
+  userId         String    @db.Uuid
   title          String    @default("Untitled") @db.VarChar(100)
   content        String    @db.VarChar(40000)
   language       String    @default("plaintext") @db.VarChar(50)
-  privacy        String    @db.VarChar(7)
+  privacy        String    @db.VarChar(8)
   createdAt      DateTime  @default(now())
   expirationDate DateTime?
+  sessionTimeout   DateTime?
+  currentUserCount Int?
+  currentUserList  Json?
 
   @@index([title])
-}
-
-model Session {
-  id               Int       @id @default(autoincrement())
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId           Int
-  title            String    @default("Untitled") @db.VarChar(100)
-  content          String    @db.VarChar(40000)
-  language         String    @default("plaintext") @db.VarChar(50)
-  privacy          String    @db.VarChar(7)
-  createdAt        DateTime  @default(now())
-  expirationDate   DateTime?
-  sessionTimeout   DateTime?
-  currentUserCount Int
-  currentUserList  Json?
 }

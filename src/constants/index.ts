@@ -8,7 +8,9 @@ export const PUBLIC = 'public' as string;
 export const UNLISTED = 'unlisted' as string;
 export const PRIVACY_OPTIONS = [PUBLIC, PRIVATE, UNLISTED];
 export const DEFAULT_TITLE = 'Untitled';
+export const DEFAULT_CONTENT = 'Write something here...';
 export const DEFAULT_LANGUAGE = 'plaintext';
+export const DEFAULT_PRIVACY = PUBLIC;
 export const OLDEST = 'oldest';
 export const NEWEST = 'newest';
 export const ALL = 'all';
@@ -26,7 +28,7 @@ export const POST_LANGUAGE_CHAR_MAX = 50;
 export const SEARCH_QUERY_MAX_WORDS = 32;
 export const AVERAGE_WORD_LENGTH = 5;
 export const EMAIL_REGEX =
-    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 export const LANGUAGE_OPTIONS = [
   'abap',
   'aes',

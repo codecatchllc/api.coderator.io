@@ -23,6 +23,13 @@ export default {
     following: '/following/:username',
     follow: '/follow/:username',
     unfollow: '/unfollow/:username',
+    specificSession: '/session/:id',
+    createSession: '/new/session',
+    createPrivateSession: '/new/private/session',
+    saveSession: '/session/:id/save',
+    editSession: '/session/edit',
+    getInitialSearch: '/search/searchInitial',
+    getSearchedPosts: '/search',
   },
   post: {
     path: '/post',

@@ -8,7 +8,7 @@ import {
   EMAIL_VERIFICATION_PREFIX,
   FORGOT_PASSWORD_PREFIX,
 } from '../constants/redis';
-import { Follow, Post, User } from '../models/init';
+import prisma, { Follow, Post, User } from '../models/init';
 import config from '../utils/config';
 import { genAccessToken } from '../utils/genAccessToken';
 import { genRefreshToken } from '../utils/genRefreshToken';
@@ -25,10 +25,23 @@ import {
   RefreshTokenSchema,
   RegisterSchema,
   UserModel,
+  PostSchema,
+  PostInnerJoinUser,
 } from './../@types/custom/index.d';
 import {
   ACCESS_TOKEN_LIFESPAN,
+  ALL,
+  DEFAULT_CONTENT,
+  DEFAULT_LANGUAGE,
+  DEFAULT_PRIVACY,
+  DEFAULT_TITLE,
   EMAIL_REGEX,
+  LANGUAGE_OPTIONS,
+  MAX_PSQL_INT,
+  OLDEST,
+  POSTS_PER_PAGE,
+  PRIVATE,
+  PUBLIC,
   REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_LIFESPAN,
 } from './../constants/index';
@@ -61,8 +74,8 @@ const login = async (req: Request, res: Response) => {
     const isEmail = EMAIL_REGEX.test(usernameOrEmail);
     const key = isEmail ? 'email' : 'username';
     const whereClause = isEmail
-        ? { email: usernameOrEmail ? usernameOrEmail.toLowerCase() : '' }
-        : { username: usernameOrEmail };
+      ? { email: usernameOrEmail ? usernameOrEmail.toLowerCase() : '' }
+      : { username: usernameOrEmail };
 
     const user = await User.findUnique({
       where: whereClause,
@@ -74,7 +87,7 @@ const login = async (req: Request, res: Response) => {
       return;
     }
 
-    if(user.isOAuthAccount) {
+    if (user.isOAuthAccount) {
       if (user.authProvider == "google") {
         res.status(400).json({
           usernameOrEmail: `Please login through your Account Provider (Google).`,
@@ -88,7 +101,7 @@ const login = async (req: Request, res: Response) => {
       }
     }
 
-    if(!user.verified) {
+    if (!user.verified) {
       res.status(403).json({
         usernameOrEmail: `Please verify your email. A new verification email has been sent to you.`,
       });
@@ -163,8 +176,8 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
     const { encodedUser } = req.validatedBody as AuthenticateWithOAuthSchema;
 
     const decodedUser = jwt.verify(
-        encodedUser,
-        config.ACCESS_TOKEN_SECRET as Secret
+      encodedUser,
+      config.ACCESS_TOKEN_SECRET as Secret
     ) as { email: string; username: string; authProvider: string };
 
     const { email: unsanitizedEmail, username, authProvider } = decodedUser;
@@ -181,13 +194,13 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
     // If the OAuth user is trying to log in instead of signing up
     if (userFound) {
       try {
-        if(userFound.authProvider != authProvider) {
+        if (userFound.authProvider != authProvider) {
           if (userFound.authProvider == 'google') {
             res.status(400).json({
               usernameOrEmail: `Please login through the correct Account Provider (Google).`,
             });
             return;
-          } else if (userFound.authProvider  == 'github') {
+          } else if (userFound.authProvider == 'github') {
             res.status(400).json({
               usernameOrEmail: `Please login through the correct Account Provider (GitHub).`,
             });
@@ -255,8 +268,8 @@ const authenticateWithOAuth = async (req: Request, res: Response) => {
       delete user.password;
 
       const html = `
-      <h4>Registration Completed!</h4>
-      <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on Coderator by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a> or <a href="${config.PROTOCOL}://${config.CLIENT_URL}/search">searching all posts</a>.</p>
+      <h4>Coderator: Registration Completed!</h4>
+      <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>.</p>
       <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
       `;
 
@@ -285,13 +298,13 @@ const register = async (req: Request, res: Response) => {
     const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
 
     const { data } = await axios.post(
-        `https://www.google.com/recaptcha/api/siteverify?secret=${config.RECAPTCHA_SECRET}&response=${captcha}`,
-        null,
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-          },
-        }
+      `https://www.google.com/recaptcha/api/siteverify?secret=${config.RECAPTCHA_SECRET}&response=${captcha}`,
+      null,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+        },
+      }
     );
     if (!data.success) {
       res.status(400).json({
@@ -344,10 +357,10 @@ const register = async (req: Request, res: Response) => {
 
     // Expire email verification token after 24 hours (60 * 60 * 24)
     await redis.set(
-        EMAIL_VERIFICATION_PREFIX + user.id,
-        token,
-        'EX',
-        60 * 60 * 24
+      EMAIL_VERIFICATION_PREFIX + user.id,
+      token,
+      'EX',
+      60 * 60 * 24
     );
 
     const html = `
@@ -375,7 +388,7 @@ const verifyEmail = async (req: Request, res: Response) => {
   try {
     const splitURL = req.path.split("/");
 
-    const id = parseInt(splitURL[2]);
+    const id = splitURL[2];
     const token = splitURL[3];
 
     const user = await User.findUnique({
@@ -388,8 +401,8 @@ const verifyEmail = async (req: Request, res: Response) => {
 
     if (!token) {
       res
-          .status(400)
-          .json({ error: 'Email verification token does not exist' });
+        .status(400)
+        .json({ error: 'Email verification token does not exist' });
       return;
     }
 
@@ -397,16 +410,16 @@ const verifyEmail = async (req: Request, res: Response) => {
     const redisToken = await redis.get(EMAIL_VERIFICATION_PREFIX + user.id);
     if (!redisToken) {
       res
-          .status(404)
-          .json({ error: 'Email verification token expired or does not exist' });
+        .status(404)
+        .json({ error: 'Email verification token expired or does not exist' });
       return;
     }
 
     // If the URL token and the Redis token do not match
     if (redisToken !== token) {
       res
-          .status(400)
-          .json({ error: 'Invalid email verification token provided' });
+        .status(400)
+        .json({ error: 'Invalid email verification token provided' });
       return;
     }
 
@@ -438,15 +451,15 @@ const verifyEmail = async (req: Request, res: Response) => {
     });
 
     const html = `
-    <h4>Registration Completed!</h4>
-    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>. You can get started on Coderator by <a href="${config.PROTOCOL}://${config.CLIENT_URL}/upload">uploading a post</a>.</p>
+    <h4>Coderator: Registration Completed!</h4>
+    <p>Hello ${user.username}, thank you for becoming a member of <a href="https://coderator.io">Coderator.io</a>.</p>
     <p>Please contact <a href="mailto: ${config.CODECATCH_EMAIL}">${config.CODECATCH_EMAIL}</a> if you have any questions or concerns.</p>
     `;
 
     await sendEmail(
-        updatedUser.email,
-        'Coderator: Registration Completed!',
-        html
+      updatedUser.email,
+      'Coderator: Registration Completed!',
+      html
     );
 
     res.status(201).json({ user: updatedUser });
@@ -461,7 +474,7 @@ const verifyEmail = async (req: Request, res: Response) => {
 const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email: unsanitizedEmail } =
-        req.validatedBody as ForgotPasswordSchema;
+      req.validatedBody as ForgotPasswordSchema;
 
     const email = unsanitizedEmail ? unsanitizedEmail.toLowerCase() : '';
 
@@ -477,7 +490,7 @@ const forgotPassword = async (req: Request, res: Response) => {
       return;
     }
 
-    if(user.isOAuthAccount) {
+    if (user.isOAuthAccount) {
       if (user.authProvider == 'github') {
         res
           .status(400)
@@ -558,13 +571,13 @@ const changePassword = async (req: Request, res: Response) => {
     }
 
     // Find user using userId pulled from Redis
-    const user = await User.findUnique({ where: { id: parseInt(userId) } });
+    const user = await User.findUnique({ where: { id: userId } });
     if (!user) {
       res.status(400).json({ error: 'User no longer exists' });
       return;
     }
 
-    if(user.isOAuthAccount) {
+    if (user.isOAuthAccount) {
       if (user.authProvider == 'github') {
         res
           .status(400)
@@ -962,7 +975,7 @@ const unfollowUser = async (req: Request, res: Response) => {
 
 const getUserById = async (req: Request, res: Response) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
 
     const user = (await User.findUnique({
       where: { id },
@@ -986,6 +999,270 @@ const getUserById = async (req: Request, res: Response) => {
   }
 };
 
+const getSession = async (req: Request, res: Response) => {
+  try {
+
+    if(req.params.id.length > 36) {
+      res.status(404).json({
+        error: 'Session could not be found',
+      });
+      return;
+    }
+
+    if(req.params.id.length < 36) {
+      res.status(404).json({
+        error: 'Session could not be found',
+      });
+      return;
+    }
+
+    const session = await Post.findUnique({
+      where: { id: req.params.id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            createdAt: true,
+            lastLoginAt: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      res.status(404).json({
+        error: 'Session could not be found',
+      });
+      return;
+    }
+
+    res.json( session );
+
+  } catch (error) {
+    res.status(500).json({
+      error: 'There was an error retrieving this session, please try again later',
+    });
+  }
+};
+
+const createSession = async (req: Request, res: Response) => {
+  try {
+    const newPost = {
+      title: DEFAULT_TITLE,
+      content: DEFAULT_CONTENT,
+      language: DEFAULT_LANGUAGE,
+      privacy: DEFAULT_PRIVACY,
+      userId: req.body.userId,
+    };
+    const session = await Post.create({ data: newPost as PostSchema });
+    console.log(session);
+    res.json({ session });
+  } catch (error) {
+    console.error('createSession() error: ', error);
+    console.log(error);
+    res.status(500).json({
+      error: 'There was an error creating this post, please try again later',
+    });
+  }
+};
+
+const createPrivateSession = async (req: Request, res: Response) => {
+  try {
+    const newPost = {
+      title: DEFAULT_TITLE,
+      content: DEFAULT_CONTENT,
+      language: DEFAULT_LANGUAGE,
+      privacy: PRIVATE,
+      userId: req.body.userId,
+    };
+    const session = await Post.create({ data: newPost as PostSchema });
+    console.log(session);
+    res.json({ session });
+  } catch (error) {
+    console.error('createSession() error: ', error);
+    console.log(error);
+    res.status(500).json({
+      error: 'There was an error creating this post, please try again later',
+    });
+  }
+};
+
+const saveSession = async (req: Request, res: Response) => {
+  try {
+    const content = req.body.rawValue;
+
+    const session = await Post.update({
+      where: { id: req.params.id },
+      data: {
+        content,
+      },
+    });
+
+    res.json({ session });
+  } catch (error) {
+    console.error('saveSession() error: ', error);
+    res.status(500).json({
+      error: 'There was an error saving this session, please try again later',
+    });
+  }
+};
+
+//route to edit a session. include title, language and privacy
+
+const editSession = async (req: Request, res: Response) => {
+
+  try {
+    const { sessionId, title, language, privacy } = req.body;
+    const session = await Post.update({
+      where: { id: sessionId },
+      data: {
+        title,
+        language,
+        privacy,
+      },
+    });
+    res.json( {"sessionId": session.id} );
+  } catch (error) {
+    console.error('editSession() error: ', error);
+    res.status(500).json({
+      error: 'There was an error editing this session, please try again later',
+    });
+  }
+};
+
+const getInitialSearch = async (_: Request, res: Response) => {
+  try {
+    const postLimit = 8;
+
+    // get explore posts
+    const explorePostsRows: PostInnerJoinUser[] = await prisma.$queryRaw`
+      SELECT
+        p.id, p."userId", p.title, p.content, p."createdAt", p.language, p.privacy,
+        u.username
+      FROM
+        public."Post" as p
+        INNER JOIN public."User" as u
+          ON p."userId" = u.id
+      WHERE p.privacy = 'public'
+      ORDER BY random()
+      LIMIT ${postLimit}
+    `;
+
+    const explorePosts = explorePostsRows.map(post => {
+      const { username, ...rest } = post;
+      return {
+        ...rest,
+        user: {
+          username,
+        },
+      };
+    });
+    res.json({
+      explorePosts,
+    });
+  } catch (error) {
+    console.error('getInitialSearch() error: ', error);
+    res.status(500).json({
+      error:
+        'There was a server-side issue while fetching initial search posts',
+    });
+  }
+};
+
+
+const getSearchedPosts = async (req: Request, res: Response) => {
+  try {
+    let orderBy:
+      | Prisma.Enumerable<Prisma.PostOrderByWithRelationAndSearchRelevanceInput>
+      | undefined;
+    if (req.query.sort === OLDEST) {
+      orderBy = [
+        {
+          createdAt: 'asc',
+        },
+      ];
+    } else {
+      orderBy = [
+        {
+          createdAt: 'desc',
+        },
+      ];
+    }
+
+    let language = ALL;
+    if (
+      req.query.language &&
+      LANGUAGE_OPTIONS.includes(req.query.language as string)
+    ) {
+      language = req.query.language as string;
+    }
+
+    let page = 0;
+    const parsedPage = Math.min(
+      Math.abs(parseInt(req.query.page as string)),
+      MAX_PSQL_INT
+    );
+    if (
+      req.query.page &&
+      typeof parsedPage === 'number' &&
+      !isNaN(parsedPage)
+    ) {
+      // Subtract 1 since page is 0-indexed
+      page = parsedPage - 1;
+    }
+
+    const queryConditions: object[] = [{ privacy: PUBLIC }];
+    if (language !== ALL) {
+      queryConditions.push({ language });
+    }
+
+    const search = (req.query.query as string) || '';
+    if (search) {
+      queryConditions.push({
+        title: {
+          search: search.split(' ').join(' | '),
+          mode: 'insensitive',
+        },
+      });
+    }
+
+    const totalPosts = await Post.count({
+      where: { AND: queryConditions },
+    });
+
+    const posts = await Post.findMany({
+      skip: page * POSTS_PER_PAGE,
+      take: POSTS_PER_PAGE,
+      where: {
+        AND: queryConditions,
+      },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
+      orderBy,
+    });
+
+    res.json({
+      pages: Math.ceil(totalPosts / POSTS_PER_PAGE),
+      total: totalPosts,
+      posts,
+    });
+  } catch (error) {
+    console.error('getSearchedPosts() error: ', error);
+    res.status(500).json({
+      error: 'There was a server-side issue while searching for posts',
+    });
+  }
+};
+
+
 export default {
   login,
   authenticateWithOAuth,
@@ -1004,4 +1281,11 @@ export default {
   getFollowing,
   followUser,
   unfollowUser,
+  getSession,
+  createSession,
+  createPrivateSession,
+  saveSession,
+  editSession,
+  getInitialSearch,
+  getSearchedPosts,
 };
