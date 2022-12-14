@@ -42,6 +42,7 @@ export type PostModel = {
   privacy: string;
   createdAt: Date;
   expirationDate: Date | null;
+  accessList: string[];
 };
 
 export type SessionModel = {
@@ -56,6 +57,7 @@ export type SessionModel = {
   sessionTimeout: Date | null;
   currentUserCount?: number;
   currentUserList?: Json;
+  accessList: string[];
 };
 
 export type FollowModel = {
