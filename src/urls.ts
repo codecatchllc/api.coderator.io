@@ -30,6 +30,8 @@ export default {
     editSession: '/session/edit',
     getInitialSearch: '/search/searchInitial',
     getSearchedPosts: '/search',
+    updateAccessList: '/permissions/accesslist',
+    getAllUsers: '/users/all',
   },
   post: {
     path: '/post',

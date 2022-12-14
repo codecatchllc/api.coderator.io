@@ -55,6 +55,7 @@ model Post {
   sessionTimeout   DateTime?
   currentUserCount Int?
   currentUserList  Json?
+  accessList String[]
 
   @@index([title])
 }
