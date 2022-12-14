@@ -316,6 +316,10 @@ router.get(urls.auth.getInitialSearch, controller.getInitialSearch);
 
 router.get(urls.auth.getSearchedPosts, controller.getSearchedPosts);
 
+router.patch(urls.auth.updateAccessList, controller.updateAccessList);
+
+router.post(urls.auth.getAllUsers, controller.getAllUsers); // TODO: secure this later
+
 // Authentication
 router.use(authenticateWithToken);
 
