@@ -1263,6 +1263,44 @@ const getSearchedPosts = async (req: Request, res: Response) => {
 };
 
 
+
+const updateAccessList = async (req: Request, res: Response) => {
+  try {
+    const { sessionId, accessList } = req.body;
+    const session = await Post.update({
+      where: { id: sessionId },
+      data: {
+        accessList,
+      },
+    });
+    res.json( {"sessionId": session?.id, "accessList": accessList } );
+  } catch (error) {
+    console.error('editSession() error: ', error);
+    res.status(500).json({
+      error: 'There was an error editing this session, please try again later',
+    });
+  }
+};
+
+
+const getAllUsers = async (_: Request, res: Response) => {
+  try {
+    const users = await User.findMany({
+      select: {
+        id: true,
+        username: true,
+      },
+    });
+    res.json(users);
+  } catch (error) {
+    console.error('getAllUsers() error: ', error);
+    res.status(500).json({
+      error: 'There was a server-side issue while fetching all users',
+    });
+  }
+};
+
+
 export default {
   login,
   authenticateWithOAuth,
@@ -1288,4 +1326,6 @@ export default {
   editSession,
   getInitialSearch,
   getSearchedPosts,
+  updateAccessList,
+  getAllUsers,
 };
